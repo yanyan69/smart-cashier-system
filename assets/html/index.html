@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Business Cashier and Inventory Management System</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <div class="container-with-sidebar">
+        <div class="sidebar">
+            <h2>Techlaro</h2>
+            <ul class="nav-list">
+                <li><a href="pages/about_us.php">About Us</a></li>
+            </ul>
+        </div>
+        <div class="container">
+            <header>
+                <h1>Smart Business Cashier and Inventory Management System</h1>
+            </header>
+            <h2>Welcome! Please Login</h2>
+            <section>
+                <form action="auth/login_process.php" method="POST">
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="button">Login</button>
+                    </div>
+                    <p>Don't have an account? <a href="auth/register.php">Register here.</a></p>
+                    <p>Forgot your password?<a href="auth/password_reset.php">Click here.</a></p>
+                    <?php
+                        if (isset($_GET['error'])) {
+                            echo '<div class="alert-danger">' . htmlspecialchars($_GET['error']) . '</div>';
+                        }
+                    ?>
+                </form>
+            </section>
+            <footer>
+                <p>&copy; 2025 Techlaro Company</p>
+            </footer>
+        </div>
+    </div>
+</body>
+</html>

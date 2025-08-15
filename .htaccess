@@ -1,0 +1,12 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /SMART-CASHIER-SYSTEM/
+
+    # Redirect requests for index.html to index.php
+    RewriteRule ^index\.html?$ index.php [L,NC]
+
+    # If you want to remove .php extension from URLs (optional, requires more setup in your links)
+    # RewriteCond %{REQUEST_FILENAME} !-d
+    # RewriteCond %{REQUEST_FILENAME}\.php -f
+    # RewriteRule ^([^.]+)$ $1.php [L,NC]
+</IfModule>
