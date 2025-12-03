@@ -1,9 +1,10 @@
 <?php
-include '../includes/session.php';
-if (!isStoreOwner()) {
-    header("Location: ../unauthorized.php");
-    exit;
+session_start();
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'owner') {
+    header("Location: ../index.php");
+    exit();
 }
+
 include '../config/db.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "GET") {
@@ -19,19 +20,19 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
     // Fetch sales data with items
     $sql = "SELECT
                 s.id AS sale_id,
-                s.sale_date,
+                s.created_at,
                 s.total_amount,
                 s.payment_type,
                 c.customer_name,
-                sd.quantity,
-                sd.price_per_item AS item_price,
+                si.quantity,
+                si.price_at_sale AS item_price,
                 p.product_name
-            FROM sales s
-            LEFT JOIN customers c ON s.customer_id = c.id
-            LEFT JOIN sales_details sd ON s.id = sd.sale_id
-            LEFT JOIN products p ON sd.product_id = p.id
-            WHERE DATE(s.sale_date) BETWEEN ? AND ?
-            ORDER BY s.sale_date ASC, s.id ASC"; // Order by sale ID to group items
+            FROM sale s
+            LEFT JOIN customer c ON s.customer_id = c.id
+            LEFT JOIN sale_item si ON s.id = si.sale_id
+            LEFT JOIN product p ON si.product_id = p.id
+            WHERE DATE(s.created_at) BETWEEN ? AND ?
+            ORDER BY s.created_at ASC, s.id ASC"; // Order by sale ID to group items
     $stmt = $conn->prepare($sql);
 
     $stmt->bind_param("ss", $start_date, $end_date);
@@ -51,7 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
         if (!isset($processed_sales_data[$sale_id])) {
             $processed_sales_data[$sale_id] = [
                 'sale_id' => $item['sale_id'],
-                'sale_date' => $item['sale_date'],
+                'created_at' => $item['created_at'],
                 'total_amount' => $item['total_amount'],
                 'payment_type' => $item['payment_type'],
                 'customer_name' => $item['customer_name'],
@@ -77,68 +78,93 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
 }
 ?>
 
-<?php include '../includes/header.php'; ?>
-<?php include '../includes/sidebar.php'; ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="/smart-cashier-system/">
+    <title>Sales Report - Smart Cashier System</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <div class="container-with-sidebar">
+        <?php include '../includes/sidebar.php'; ?>
+        <div class="container">
+            <header>
+                <h1>Sales Report</h1>
+            </header>
+            <section>
+                <p>Sales from <?php echo htmlspecialchars(date('Y-m-d', strtotime($start_date))); ?> to <?php echo htmlspecialchars(date('Y-m-d', strtotime($end_date))); ?></p>
 
-<div class="content">
-    <h1>Sales Report</h1>
-    <p>Sales from <?php echo htmlspecialchars(date('Y-m-d', strtotime($start_date))); ?> to <?php echo htmlspecialchars(date('Y-m-d', strtotime($end_date))); ?></p>
+                <?php if (empty($sales_data)): ?>
+                    <p>No sales recorded within the selected date range.</p>
+                <?php else: ?>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Sale ID</th>
+                                <th>Sale Date</th>
+                                <th>Total Amount</th>
+                                <th>Payment Type</th>
+                                <th>Customer Name</th>
+                                <th>Items Sold</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($sales_data as $sale): ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($sale['sale_id']); ?></td>
+                                    <td><?php echo htmlspecialchars(date('Y-m-d H:i:s', strtotime($sale['created_at']))); ?></td>
+                                    <td>₱ <?php echo htmlspecialchars(number_format($sale['total_amount'], 2)); ?></td>
+                                    <td><?php echo htmlspecialchars(ucfirst($sale['payment_type'])); ?></td>
+                                    <td><?php echo htmlspecialchars($sale['customer_name'] ?: 'N/A'); ?></td>
+                                    <td>
+                                        <ul>
+                                            <?php if (!empty($sale['items'])): ?>
+                                                <?php foreach ($sale['items'] as $item): ?>
+                                                    <li><?php echo htmlspecialchars($item['quantity']); ?> x <?php echo htmlspecialchars($item['product_name']); ?> (₱ <?php echo htmlspecialchars(number_format($item['item_price'], 2)); ?>)</li>
+                                                <?php endforeach; ?>
+                                            <?php else: ?>
+                                                <li>No items recorded for this sale.</li>
+                                            <?php endif; ?>
+                                        </ul>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="2">Total Sales:</th>
+                                <th>
+                                    ₱ <?php
+                                        $total_sales = 0;
+                                        foreach ($sales_data as $sale) {
+                                            $total_sales += $sale['total_amount'];
+                                        }
+                                        echo htmlspecialchars(number_format($total_sales, 2));
+                                    ?>
+                                </th>
+                                <th colspan="3"></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                <?php endif; ?>
 
-    <?php if (empty($sales_data)): ?>
-        <p>No sales recorded within the selected date range.</p>
-    <?php else: ?>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Sale ID</th>
-                    <th>Sale Date</th>
-                    <th>Total Amount</th>
-                    <th>Payment Type</th>
-                    <th>Customer Name</th>
-                    <th>Items Sold</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($sales_data as $sale): ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($sale['sale_id']); ?></td>
-                        <td><?php echo htmlspecialchars(date('Y-m-d H:i:s', strtotime($sale['sale_date']))); ?></td>
-                        <td>₱ <?php echo htmlspecialchars(number_format($sale['total_amount'], 2)); ?></td>
-                        <td><?php echo htmlspecialchars(ucfirst($sale['payment_type'])); ?></td>
-                        <td><?php echo htmlspecialchars($sale['customer_name'] ?: 'N/A'); ?></td>
-                        <td>
-                            <ul>
-                                <?php if (!empty($sale['items'])): ?>
-                                    <?php foreach ($sale['items'] as $item): ?>
-                                        <li><?php echo htmlspecialchars($item['quantity']); ?> x <?php echo htmlspecialchars($item['product_name']); ?> (₱ <?php echo htmlspecialchars(number_format($item['item_price'], 2)); ?>)</li>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
-                                    <li>No items recorded for this sale.</li>
-                                <?php endif; ?>
-                            </ul>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-            <tfoot>
-                <tr>
-                    <th colspan="2">Total Sales:</th>
-                    <th>
-                        ₱ <?php
-                            $total_sales = 0;
-                            foreach ($sales_data as $sale) {
-                                $total_sales += $sale['total_amount'];
-                            }
-                            echo htmlspecialchars(number_format($total_sales, 2));
-                        ?>
-                    </th>
-                    <th colspan="3"></th>
-                </tr>
-            </tfoot>
-        </table>
-    <?php endif; ?>
-
-    <p><a href="reports.php">Back to Reports</a></p>
-</div>
-
-<?php include '../includes/footer.php'; ?>
+                <p><a href="pages/reports.php">Back to Reports</a></p>
+            </section>
+            <footer>
+                <p>&copy; 2025 Techlaro Company</p>
+            </footer>
+        </div>
+    </div>
+    <script>
+        window.onload = function() {
+            const container = document.querySelector('.container');
+            if (container) {
+                container.scrollIntoView({ behavior: 'smooth' });
+            }
+        };
+    </script>
+</body>
+</html>

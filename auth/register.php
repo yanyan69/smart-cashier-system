@@ -8,13 +8,7 @@
 </head>
 <body>
     <div class="container-with-sidebar">
-        <div class="sidebar">
-            <h2>Techlaro</h2>
-            <ul class="nav-list">
-                <li><a href="../pages/about_us.php">About Us</a></li>
-                <li><a href="../index.php">Login</a></li>
-            </ul>
-        </div>
+        <?php include '../includes/sidebar.php'; ?>
         <div class="container">
             <header>
                 <h1>Register</h1>

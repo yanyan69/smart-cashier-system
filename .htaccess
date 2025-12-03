@@ -9,4 +9,5 @@
     # RewriteCond %{REQUEST_FILENAME} !-d
     # RewriteCond %{REQUEST_FILENAME}\.php -f
     # RewriteRule ^([^.]+)$ $1.php [L,NC]
+    ErrorDocument 404 /smart-cashier-system/custom_404.php
 </IfModule>

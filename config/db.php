@@ -1,17 +1,12 @@
 <?php
-// Database credentials
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASSWORD', 'admin');
-define('DB_NAME', 'cashier_db');
+// Database credentials (replace with your actual values)
+$host = "127.0.0.1:3307"; // Updated to include port from your my.ini
+$dbname = "cashier_db";
+$username = "root";
+$password = ""; // Empty password as per your config.inc.php
 
-// Optional: Database port
-define('DB_PORT', '3306');
-
-// Optional: Table prefix
-define('DB_PREFIX', '');
 // Establish database connection
-$conn = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
+$conn = new mysqli($host, $username, $password, $dbname);
 
 // Check connection
 if ($conn->connect_error) {

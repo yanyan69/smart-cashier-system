@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once '../includes/functions.php'; // Assuming you have a functions.php for database connection
 
 // Start the session (if not already started)

@@ -1,4 +1,5 @@
 <?php
+session_start();
 include '../includes/session.php';
 if (!isAdmin()) {
     header("Location: ../unauthorized.php");
@@ -70,7 +71,7 @@ $db_name = DB_NAME;
 $backup_content = backupDatabase($db_host, $db_user, $db_pass, $db_name);
 
 if (is_string($backup_content) && strpos($backup_content, 'MySQL connection failed') !== false) {
-    header("Location: admin_panel.php?action=backup_db&error=" . urlencode($backup_content));
+    header("Location: admin_panel.php?action=database_backups&error=" . urlencode($backup_content));
     exit;
 }
 

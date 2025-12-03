@@ -1,4 +1,5 @@
 <?php
+session_start();
 include '../includes/session.php'; // You might want to include session here for user info
 ?>
 

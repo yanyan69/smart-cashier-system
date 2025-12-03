@@ -1,4 +1,5 @@
 <?php
+session_start();
 // edit_product.php
 include '../includes/session.php';
 if (!isStoreOwner()) {

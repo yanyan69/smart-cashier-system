@@ -1,22 +1,16 @@
-<?php
-session_start(); // Start the session at the very top
+<?php 
+session_start(); 
+include '../includes/header.php'; 
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Us - Techlaro Company</title>
-    <link rel="stylesheet" href="../assets/css/style.css">
-</head>
-<body>
-    <?php include '../includes/header.php'; ?>
+<div class="container-with-sidebar">
     <?php include '../includes/sidebar.php'; ?>
 
     <div class="container">
-        <div class="content">
+        <header>
             <h1>About Us - Techlaro Company</h1>
+        </header>
 
+        <section class="content">
             <div class="company-overview">
                 <h2>Our Company</h2>
                 <p>Techlaro Company is a dynamic and innovative technology firm dedicated to providing cutting-edge solutions to meet the evolving needs of our clients. Founded on the principles of collaboration, expertise, and a passion for technology, we strive to deliver high-quality services and products that empower businesses and individuals alike. Our team of skilled professionals brings together a wealth of experience in various aspects of software development and database management.</p>
@@ -39,30 +33,39 @@ session_start(); // Start the session at the very top
 
             <h2>Our Team</h2>
             <div class="team-members">
-                <div class="team-member">
+                <a href="https://yanyan69.github.io/yanyan.github.io/" class="team-member">
                     <img src="../assets/images/christian.jpg" alt="Christian L. Narvaez">
                     <h3>Christian L. Narvaez</h3>
                     <p>Full-Stack Developer</p>
-                </div>
-                <div class="team-member">
+                </a>
+                <a href="https://example.com/johnpaul-armenta" class="team-member">
                     <img src="../assets/images/johnpaul.jpg" alt="John Paul F. Armenta">
                     <h3>John Paul F. Armenta</h3>
                     <p>Back-end Developer</p>
-                </div>
-                <div class="team-member">
+                </a>
+                <a href="https://example.com/jerald-preclaro" class="team-member">
                     <img src="../assets/images/jerald.jpg" alt="Jerald James D. Preclaro">
                     <h3>Jerald James D. Preclaro</h3>
                     <p>Front-end Developer</p>
-                </div>
-                <div class="team-member">
+                </a>
+                <a href="https://example.com/marielle-maming" class="team-member">
                     <img src="../assets/images/marielle.jpg" alt="Marielle B. Maming">
                     <h3>Marielle B. Maming</h3>
                     <p>Database Administrator</p>
-                </div>
+                </a>
             </div>
-        </div>
-    </div>
+        </section>
 
-    <?php include '../includes/footer.php'; ?>
-</body>
-</html>
+        <footer>
+            <p>&copy; 2025 Techlaro Company</p>
+        </footer>
+    </div>
+</div>
+<script>
+    window.onload = function() {
+        const container = document.querySelector('.container');
+        if (container) {
+            container.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+</script>

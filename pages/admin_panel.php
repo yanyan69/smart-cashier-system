@@ -1,5 +1,8 @@
-<?php include '../includes/session.php'; ?>
+<?php 
+session_start();
+include '../includes/session.php'; ?>
 <?php
+session_start();
 // Check if the user is an admin
 if (!isAdmin()) {
     header("Location: ../unauthorized.php"); // You'll need to create this page
@@ -94,14 +97,14 @@ $conn->close();
             </form>
             <?php
             break;
-        case 'backup_db':
+        case 'database_backups':
             echo "<p>Use this section to perform database backups.</p>";
             echo "<p><a href='backup_db.php' class='button'>Create Database Backup</a></p>";
             if (isset($_GET['error'])) {
                 echo "<div class='alert-danger'>" . htmlspecialchars($_GET['error']) . "</div>";
             }
             break;
-        case 'view_logs':
+        case 'system_logs':
             echo "<p>This page displays system maintenance logs.</p>";
             $logFile = '../logs/system.log';
             if (file_exists($logFile)) {

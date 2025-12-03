@@ -1,5 +1,5 @@
 <?php
-
+session_start();
 function logMessage($message, $logLevel = 'info') {
     $logFile = '../logs/system.log'; // Define the log file path
     $timestamp = date('Y-m-d H:i:s');

@@ -1,4 +1,5 @@
 <?php
+session_start();
 include '../includes/session.php';
 if (!isStoreOwner()) {
     header("Location: ../unauthorized.php");

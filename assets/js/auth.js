@@ -11,9 +11,10 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
   
     const data = await res.json();
     if (data.status === "success") {
-      window.location.href = data.role === "admin" ? "admin.html" : "dashboard.html";
+      window.location.href = data.role === "admin" ? "pages/admin_panel.php?action=overview" : "pages/dashboard.php";
     } else {
-      alert("Login failed: " + data.message);
+      const errorDiv = document.getElementById("error-message");
+      errorDiv.textContent = "Login failed: " + data.message;
+      errorDiv.style.display = "block";
     }
   });
-  

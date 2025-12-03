@@ -1,4 +1,5 @@
 <?php
+session_start();
 include '../includes/session.php';
 if (!isAdmin()) {
     header("Location: ../unauthorized.php");

@@ -12,14 +12,17 @@ $conn = new mysqli($host, $username, $password, $dbname);
 
 // Check connection
 if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+    echo json_encode(['status' => 'error', 'message' => 'Connection failed: ' . $conn->connect_error]);
+    exit();
 }
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = $_POST['username'];
-    $password = $_POST['password'];
+// Read JSON input
+$input = json_decode(file_get_contents('php://input'), true);
 
-    // Now, $conn should be available
+if (isset($input['username']) && isset($input['password'])) {
+    $username = $input['username'];
+    $password = $input['password'];
+
     $stmt = $conn->prepare("SELECT id, username, password, role FROM `user` WHERE username = ?");
     $stmt->bind_param("s", $username);
     $stmt->execute();
@@ -32,26 +35,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['username'] = $user['username'];
             $_SESSION['role'] = $user['role'];
 
-            // Redirect based on user role with absolute path
-            if ($_SESSION['role'] === 'admin') {
-                header("Location: /smart-cashier-system/pages/admin_panel.php?action=overview"); // Redirect to admin panel
-            } else {
-                header("Location: /smart-cashier-system/pages/dashboard.php"); // Redirect to store owner dashboard
-            }
+            echo json_encode(['status' => 'success', 'role' => $user['role']]);
             exit();
         } else {
-            header("Location: /smart-cashier-system/assets/html/index.html?error=Invalid password"); // Redirect back to login page with error
+            echo json_encode(['status' => 'error', 'message' => 'Invalid password']);
             exit();
         }
     } else {
-        header("Location: /smart-cashier-system/assets/html/index.html?error=Invalid username"); // Redirect back to login page with error
+        echo json_encode(['status' => 'error', 'message' => 'Invalid username']);
         exit();
     }
 
     $stmt->close();
     $conn->close();
 } else {
-    header("Location: /smart-cashier-system/assets/html/index.html"); // If accessed directly, redirect to login page
+    echo json_encode(['status' => 'error', 'message' => 'Invalid request']);
     exit();
 }
 ?>
