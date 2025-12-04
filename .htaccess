@@ -1,6 +1,6 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /SMART-CASHIER-SYSTEM/
+    RewriteBase /smart-cashier-system/
 
     # Redirect requests for index.html to index.php
     RewriteRule ^index\.html?$ index.php [L,NC]
