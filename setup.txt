@@ -1,0 +1,114 @@
+==================================================================
+SMART BUSINESS CASHIER & INVENTORY MANAGEMENT SYSTEM
+EASY SETUP GUIDE (Windows + XAMPP)
+==================================================================
+
+This guide will get the system running in less than 10 minutes even if you are a complete beginner.
+
+REQUIREMENTS
+--------------------------------------------------------------------
+1. Windows 10/11 (64-bit recommended)
+2. XAMPP (latest version) → Download: https://www.apachefriends.org/download.html
+   Choose "XAMPP for Windows" (PHP 8.2 or 8.3 is fine)
+3. Git (optional but recommended) → https://git-scm.com/downloads
+   (During installation, choose "Add Git to PATH")
+
+QUICK SETUP STEPS
+--------------------------------------------------------------------
+STEP 1: Install XAMPP
+   • Run the XAMPP installer (double-click the .exe)
+   • Install to the default location: C:\xampp
+   • When asked, allow Apache and MySQL to be installed
+
+STEP 2: Get the project files
+   Two ways (choose one):
+
+   OPTION A – Clone with Git (recommended)
+      • Open Command Prompt or Windows Terminal
+      • Run these commands:
+          cd C:\xampp\htdocs
+          git clone https://github.com/yanyan69/smart-cashier-system.git
+         
+   OPTION B – Manual download
+      • Download the ZIP from GitHub
+      • Extract everything into: C:\xampp\htdocs\smart-cashier-system
+
+   Final folder path must be: C:\xampp\htdocs\smart-cashier-system
+
+STEP 3: Start Apache & MySQL
+   • Open "XAMPP Control Panel" (search in Start menu)
+   • Click "Start" next to Apache
+   • Click "Start" next to MySQL
+   • Both should turn GREEN
+
+STEP 4: Create the database (one-click method)
+   • Open your browser → go to: http://localhost/phpmyadmin
+   • Click "Databases" tab
+   • Type database name: cashier_db
+   • Click "Create"
+   • Now click on the new database "cashier_db" on the left
+   • Click "Import" tab
+   • Click "Choose File" → browse to your project folder →
+     select: database\database.sql
+   • Scroll down and click "Import" (or "Go")
+
+   → You should see "Import has been successfully finished"
+
+STEP  5: Test the system
+   • Open browser → go to:
+     http://localhost/smart-cashier-system/
+   • You will see the login page
+
+FIRST-TIME LOGIN (Important!)
+--------------------------------------------------------------------
+The system comes with no default user. You must register the first account:
+
+1. On the login page, click "Register here."
+2. Fill the form:
+   • Username: admin (or anything you want)
+   • Password: anything strong
+   • Role: choose "admin" (very important for full access)
+3. Click Register
+4. Now go back and login with the account you just created
+
+You now have full admin access!
+
+COMMON ISSUES & FIXES
+--------------------------------------------------------------------
+• Port conflict (Apache/MySQL won't start)?
+   → Skype, VMware, or another program is using port 80 or 3306
+   → Solution: Close Skype or change XAMPP ports (Config → Service and Port Settings)
+
+• "Access denied" or database error?
+   → Make sure database name is exactly: cashier_db
+   → Make sure you imported database.sql correctly
+
+• Blank page or errors?
+   → Check XAMPP Control Panel → Apache → Logs → error.log
+   → Or enable error display temporarily:
+     Open C:\xampp\htdocs\smart-cashier-system\includes\db_connect.php
+     Add this line at the top (after <?php):
+     ini_set('display_errors', 1); error_reporting(E_ALL);
+
+• Want to use on phone/tablet in the same Wi-Fi?
+   → Find your PC's IP (open cmd → type ipconfig → look for IPv4)
+   → On phone browser: http://192.168.x.x/smart-cashier-system/
+     (replace with your PC IP)
+
+UPDATING THE SYSTEM LATER
+--------------------------------------------------------------------
+If we push updates on GitHub:
+   • Open cmd in project folder:
+     cd C:\xampp\htdocs\smart-cashier-system
+     git pull
+   • Done! All new files are updated automatically.
+
+That's it! Your cashier system is now 100% ready.
+
+Any problem? Message Christian Narvaez on Facebook or WhatsApp.
+We can TeamViewer and fix it in 2 minutes.
+
+==================================================================
+Techlaro Company © 2025
+Christian L. Narvaez | John Paul F. Armenta | Jerald James D. Preclaro | Marielle B. Maming
+==================================================================
