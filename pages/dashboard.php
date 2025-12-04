@@ -28,12 +28,12 @@ $total_sales_result = $conn->query($total_sales_query);
 $total_sales = $total_sales_result->fetch_assoc()['total_sales'] ?? 0;
 
 // Fetch total products
-$total_products_query = "SELECT COUNT(*) AS total_products FROM product";
+$total_products_query = "SELECT COUNT(*) AS total_products FROM product WHERE created_at > '1970-01-01'";
 $total_products_result = $conn->query($total_products_query);
 $total_products = $total_products_result->fetch_assoc()['total_products'] ?? 0;
 
 // Fetch total customers
-$total_customers_query = "SELECT COUNT(*) AS total_customers FROM customer";
+$total_customers_query = "SELECT COUNT(*) AS total_customers FROM customer WHERE created_at > '1970-01-01'";
 $total_customers_result = $conn->query($total_customers_query);
 $total_customers = $total_customers_result->fetch_assoc()['total_customers'] ?? 0;
 
@@ -77,7 +77,7 @@ if ($hour >= 5 && $hour < 12) {
     <!-- Page title -->
     <title>Dashboard - Smart Cashier System</title>
     <!-- Link to external CSS stylesheet -->
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link id="theme-stylesheet" rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
     <!-- Main container with sidebar -->
@@ -196,6 +196,7 @@ if ($hour >= 5 && $hour < 12) {
     </div>
     <!-- Link to external JavaScript file -->
     <script src="assets/js/dashboard.js"></script>
+    <script src="assets/js/scripts.js"></script>
     <script>
         window.onload = function() {
             const container = document.querySelector('.container');

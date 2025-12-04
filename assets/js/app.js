@@ -22,3 +22,4 @@ function displayMessage(message, type = 'info') {
 
 // You might have more specific JavaScript code in separate files (e.g., products.js, sales.js)
 // and include them on the relevant pages.
+

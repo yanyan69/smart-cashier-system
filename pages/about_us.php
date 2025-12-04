@@ -33,7 +33,7 @@ include '../includes/header.php';
 
             <h2>Our Team</h2>
             <div class="team-members">
-                <a href="https://yanyan69.github.io/yanyan.github.io/" class="team-member">
+                <a href="https://example.com/christian-narvaez" class="team-member">
                     <img src="../assets/images/christian.jpg" alt="Christian L. Narvaez">
                     <h3>Christian L. Narvaez</h3>
                     <p>Full-Stack Developer</p>
@@ -61,6 +61,7 @@ include '../includes/header.php';
         </footer>
     </div>
 </div>
+<script src="assets/js/scripts.js"></script>
 <script>
     window.onload = function() {
         const container = document.querySelector('.container');
@@ -69,3 +70,5 @@ include '../includes/header.php';
         }
     };
 </script>
+</body>
+</html>

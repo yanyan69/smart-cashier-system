@@ -6,64 +6,77 @@ if (!isAdmin()) {
     exit;
 }
 include '../config/db.php';
-include '../includes/header.php'; // Include header for consistent UI
-include '../includes/sidebar.php'; // Include sidebar for navigation
 
-$user_id = $_GET['id'] ?? null;
-
-if (!$user_id) {
-    // No user ID provided, redirect back to manage users with an error
-    header("Location: admin_panel.php?action=manage_users&error=No user selected for editing");
-    exit;
-}
-
-// Fetch user data for the given ID
-$stmt_select = $conn->prepare("SELECT id, username, role FROM users WHERE id = ?");
-$stmt_select->bind_param("i", $user_id);
-$stmt_select->execute();
-$result_select = $stmt_select->get_result();
-$user_to_edit = $result_select->fetch_assoc();
-$stmt_select->close();
-
-if (!$user_to_edit) {
-    // User not found, redirect with an error
-    header("Location: admin_panel.php?action=manage_users&error=User not found");
-    exit;
+if (isset($_GET['id'])) {
+    $user_id = $_GET['id'];
+    $stmt = $conn->prepare("SELECT username, role FROM `user` WHERE id = ?");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $user = $result->fetch_assoc();
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $new_role = $_POST['role'];
+    $username = $_POST['username'];
+    $password = !empty($_POST['password']) ? password_hash($_POST['password'], PASSWORD_DEFAULT) : null;
+    $role = $_POST['role'];
 
-    $stmt_update = $conn->prepare("UPDATE users SET role = ? WHERE id = ?");
-    $stmt_update->bind_param("si", $new_role, $user_id);
-
-    if ($stmt_update->execute()) {
-        header("Location: admin_panel.php?action=manage_users&success=User role updated successfully");
+    if ($password) {
+        $sql = "UPDATE `user` SET username = ?, password = ?, role = ? WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("sssi", $username, $password, $role, $user_id);
     } else {
-        header("Location: admin_panel.php?action=manage_users&error=Error updating user role: " . $stmt_update->error);
+        $sql = "UPDATE `user` SET username = ?, role = ? WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ssi", $username, $role, $user_id);
     }
 
-    $stmt_update->close();
-    $conn->close();
+    if ($stmt->execute()) {
+        header("Location: admin_panel.php?action=manage_users&success=User updated successfully");
+    } else {
+        header("Location: admin_panel.php?action=manage_users&error=Error updating user");
+    }
     exit;
 }
 ?>
 
-<div class="content">
-    <h1>Edit User Role</h1>
-    <p>Edit the role for user: <?php echo htmlspecialchars($user_to_edit['username']); ?></p>
-    <form action="edit_user.php?id=<?php echo htmlspecialchars($user_id); ?>" method="POST">
-        <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($user_to_edit['id']); ?>">
-        <div class="form-group">
-            <label for="role">New Role:</label>
-            <select id="role" name="role">
-                <option value="owner" <?php if ($user_to_edit['role'] === 'owner') echo 'selected'; ?>>Store Owner</option>
-                <option value="admin" <?php if ($user_to_edit['role'] === 'admin') echo 'selected'; ?>>Admin</option>
-            </select>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="/smart-cashier-system/">
+    <title>Edit User</title>
+    <link id="theme-stylesheet" rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <div class="container-with-sidebar">
+        <?php include '../includes/sidebar.php'; ?>
+        <div class="container">
+            <header><h1>Edit User</h1></header>
+            <section>
+                <form action="edit_user.php?id=<?php echo $user_id; ?>" method="POST">
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" name="username" value="<?php echo htmlspecialchars($user['username']); ?>" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">New Password (leave blank to keep current):</label>
+                        <input type="password" id="password" name="password">
+                    </div>
+                    <div class="form-group">
+                        <label for="role">Role:</label>
+                        <select id="role" name="role">
+                            <option value="owner" <?php if ($user['role'] == 'owner') echo 'selected'; ?>>Owner</option>
+                            <option value="admin" <?php if ($user['role'] == 'admin') echo 'selected'; ?>>Admin</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="button">Update User</button>
+                </form>
+            </section>
+            <footer><p>&copy; 2025 Techlaro Company</p></footer>
         </div>
-        <button type="submit" class="button">Update Role</button>
-        <p><a href="admin_panel.php?action=manage_users">Back to Manage Users</a></p>
-    </form>
-</div>
-
-<?php include '../includes/footer.php'; ?>
+    </div>
+    <script src="assets/js/scripts.js"></script>
+</body>
+</html>

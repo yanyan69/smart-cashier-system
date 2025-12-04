@@ -1,16 +1,20 @@
 <?php
-session_start();
+// Database connection (assuming it's in db_connect.php)
+
+// Log message function
 function logMessage($message, $logLevel = 'info') {
-    $logFile = '../logs/system.log'; // Define the log file path
+    $logFile = '../logs/app.log';
     $timestamp = date('Y-m-d H:i:s');
-    $logEntry = "[{$timestamp}] [{$logLevel}] {$message}\n";
-
-    // Ensure the logs directory exists
-    if (!is_dir('../logs')) {
-        mkdir('../logs', 0755, true); // Create directory if it doesn't exist
-    }
-
-    file_put_contents($logFile, $logEntry, FILE_APPEND);
+    file_put_contents($logFile, "[$timestamp] [$logLevel] $message\n", FILE_APPEND);
+    error_log($message);  // Also log to PHP error log for easy checking
 }
 
-?>
+// Other functions (e.g., validate_input, etc.)
+function validate_input($data) {
+    $data = trim($data);
+    $data = stripslashes($data);
+    $data = htmlspecialchars($data);
+    return $data;
+}
+
+// Add calls like logMessage("User ID: $user_id, Role: $role"); in dashboard.php or other files as needed

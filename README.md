@@ -33,12 +33,12 @@ This is a web-based system designed to help small businesses manage their sales,
     * Create a new database named `cashier_db` (or your preferred name).
     * Import the `database/database.sql` file (if you have created one with your table structure) or manually create the tables as defined in your database design.
     * Update the database connection details in `config/db.php` with your MySQL username, password, and database name.
-3.  **File Placement:** Place all the project files within the web server's document root (e.g., `htdocs` in XAMPP). If the project is in a subfolder (like `SMART-CASHIER-SYSTEM`), access it via `http://localhost/SMART-CASHIER-SYSTEM/`.
+3.  **File Placement:** Place all the project files within the web server's document root (e.g., `htdocs` in XAMPP). If the project is in a subfolder (like `smart-cashier-system`), access it via `http://localhost/smart-cashier-system/`.
 4.  **`.htaccess` (Optional):** Ensure that `.htaccess` is enabled on your Apache server if you intend to use the URL rewriting rules.
 
 ## Getting Started
 
-1.  Open your web browser and navigate to the project's URL (e.g., `http://localhost/SMART-CASHIER-SYSTEM/`).
+1.  Open your web browser and navigate to the project's URL (e.g., `http://localhost/smart-cashier-system/`).
 2.  You should see the login page (`index.php` or `index.html`).
 3.  You might need to register an initial admin user through the registration page (`auth/register.php`).
 

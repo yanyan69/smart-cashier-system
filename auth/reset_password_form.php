@@ -1,29 +1,17 @@
 <?php
 session_start();
-require_once '../includes/functions.php'; // Assuming you have a functions.php for database connection
+require_once '../config/db.php';
 
-// Start the session (if not already started)
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
-
-// Retrieve the reset token from the URL
 $token = $_GET['token'] ?? '';
 
-// Check if the token is valid (exists in the database and hasn't expired)
 if (!empty($token)) {
-    $conn = connect_db();
+    $stmt = $conn->prepare("SELECT id FROM `user` WHERE reset_token = ? AND reset_expiry > NOW()");
+    $stmt->bind_param("s", $token);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-    // Sanitize input (use prepared statements in a real application)
-    $token = mysqli_real_escape_string($conn, $token);
-
-    $query = "SELECT user_id FROM users WHERE reset_token = '$token' AND reset_expiry > NOW()";
-    $result = mysqli_query($conn, $query);
-
-    if (mysqli_num_rows($result) === 1) {
-        $user = mysqli_fetch_assoc($result);
-        $user_id = $user['user_id'];
-        // Token is valid, display the form to enter a new password
+    if ($result->num_rows === 1) {
+        $user = $result->fetch_assoc();
         ?>
         <!DOCTYPE html>
         <html lang="en">
@@ -31,7 +19,7 @@ if (!empty($token)) {
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Reset Your Password</title>
-            <link rel="stylesheet" href="../assets/css/style.css">
+            <link id="theme-stylesheet" rel="stylesheet" href="assets/css/style.css">
         </head>
         <body>
             <div class="container-with-sidebar">
@@ -42,13 +30,8 @@ if (!empty($token)) {
                     </header>
                     <section>
                         <?php
-                        if (isset($_SESSION['reset_password_error'])) {
-                            echo '<div class="alert-danger">' . htmlspecialchars($_SESSION['reset_password_error']) . '</div>';
-                            unset($_SESSION['reset_password_error']);
-                        }
-                        if (isset($_SESSION['reset_password_success'])) {
-                            echo '<div class="alert-success">' . htmlspecialchars($_SESSION['reset_password_success']) . '</div>';
-                            unset($_SESSION['reset_password_success']);
+                        if (isset($_GET['error'])) {
+                            echo '<div class="alert-danger">' . htmlspecialchars($_GET['error']) . '</div>';
                         }
                         ?>
                         <form action="reset_password_process.php" method="POST">
@@ -71,22 +54,19 @@ if (!empty($token)) {
                     </footer>
                 </div>
             </div>
+            <script src="assets/js/scripts.js"></script>
         </body>
         </html>
         <?php
     } else {
-        // Invalid or expired token, display an error message
-        $_SESSION['error'] = "Invalid or expired password reset link.";
-        header("Location: ../index.php"); // Redirect to login page with error
+        header("Location: ../index.php?error=Invalid or expired token.");
         exit();
     }
 
-    mysqli_close($conn);
-
+    $stmt->close();
+    $conn->close();
 } else {
-    // Token not provided in the URL, redirect to login page with an error
-    $_SESSION['error'] = "Invalid password reset link.";
-    header("Location: ../index.php");
+    header("Location: ../index.php?error=Invalid reset link.");
     exit();
 }
 ?>

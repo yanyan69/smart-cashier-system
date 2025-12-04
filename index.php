@@ -20,7 +20,7 @@ if (isset($_SESSION['user_id'])) {
     <!-- Base tag to fix relative paths across different directories -->
     <base href="/smart-cashier-system/">
     <title>Smart Business Cashier and Inventory Management System</title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link id="theme-stylesheet" rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
     <div class="container-with-sidebar">
@@ -37,7 +37,7 @@ if (isset($_SESSION['user_id'])) {
                         echo '<div class="alert-danger">' . htmlspecialchars($_GET['error']) . '</div>';
                     }
                 ?>
-                <form id="loginForm" action="auth/login_process.php" method="POST">
+                <form id="loginForm" method="POST">  <!-- Removed action to rely on JS -->
                     <div class="form-group">
                         <label for="username">Username:</label>
                         <input type="text" id="username" name="username" required>
@@ -52,6 +52,9 @@ if (isset($_SESSION['user_id'])) {
                     <p>Don't have an account? <a href="auth/register.php">Register here.</a></p>
                     <p>Forgot your password?<a href="auth/password_reset.php">Click here.</a></p>
                 </form>
+                <noscript>
+                    <p>JavaScript is required for login. Please enable it or submit the form directly to "auth/login_process.php".</p>
+                </noscript>
             </section>
             <footer>
                 <p>&copy; 2025 Techlaro Company</p>
@@ -59,6 +62,7 @@ if (isset($_SESSION['user_id'])) {
         </div>
     </div>
     <script src="assets/js/auth.js"></script>
+    <script src="assets/js/scripts.js"></script>
 </body>
 </html>
 <?php } ?>

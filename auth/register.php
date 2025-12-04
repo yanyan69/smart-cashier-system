@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="/smart-cashier-system/">
     <title>Register - Smart Business Cashier System</title>
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <link id="theme-stylesheet" rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
     <div class="container-with-sidebar">
@@ -46,5 +47,6 @@
             </footer>
         </div>
     </div>
+    <script src="assets/js/scripts.js"></script>
 </body>
 </html>

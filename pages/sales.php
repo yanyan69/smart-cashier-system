@@ -7,11 +7,51 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'owner') {
 
 include '../config/db.php';
 
-$products_query = "SELECT id, product_name, price FROM product";
+$user_id = $_SESSION['user_id'];
+$role = $_SESSION['role'];
+
+// For sale form: Fetch products and customers with scoping
+$where_product = ($role === 'owner') ? "WHERE (user_id = $user_id OR user_id IS NULL)" : "";
+$products_query = "SELECT id, product_name, price FROM product $where_product";
 $products_result = $conn->query($products_query);
 
-$customers_query = "SELECT id, customer_name FROM customer";
+$where_customer = ($role === 'owner') ? "WHERE user_id = $user_id" : "";
+$customers_query = "SELECT id, customer_name FROM customer $where_customer";
 $customers_result = $conn->query($customers_query);
+
+// For sales list: Pagination, search, filters
+$page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+$limit = 10;
+$offset = ($page - 1) * $limit;
+
+$search = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';
+$payment_types = isset($_GET['payment_types']) ? $_GET['payment_types'] : []; // For filters (e.g., cash, credit)
+
+$where_clauses = [];
+if ($role === 'owner') $where_clauses[] = "s.user_id = $user_id";
+if ($search) $where_clauses[] = "(c.customer_name LIKE '%$search%' OR s.payment_type LIKE '%$search%')";
+if (!empty($payment_types)) {
+    $types_escaped = array_map(function($type) use ($conn) { return $conn->real_escape_string($type); }, $payment_types);
+    $where_clauses[] = "s.payment_type IN ('" . implode("','", $types_escaped) . "')";
+}
+$where = !empty($where_clauses) ? "WHERE " . implode(' AND ', $where_clauses) : "";
+
+$total_query = "SELECT COUNT(*) FROM sale s LEFT JOIN customer c ON s.customer_id = c.id $where";
+$total = $conn->query($total_query)->fetch_row()[0];
+$pages = ceil($total / $limit);
+
+$sales_query = "SELECT s.id, s.total_amount, s.payment_type, s.created_at, c.customer_name 
+                FROM sale s LEFT JOIN customer c ON s.customer_id = c.id $where 
+                ORDER BY s.created_at DESC LIMIT $limit OFFSET $offset";
+$sales_result = $conn->query($sales_query);
+
+// Unique payment types for filter
+$payment_types_query = "SELECT DISTINCT s.payment_type FROM sale s $where";
+$payment_types_result = $conn->query($payment_types_query);
+$all_payment_types = [];
+while ($row = $payment_types_result->fetch_assoc()) {
+    $all_payment_types[] = $row['payment_type'];
+}
 
 $conn->close();
 ?>
@@ -23,7 +63,7 @@ $conn->close();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <base href="/smart-cashier-system/">
     <title>Sales - Smart Cashier System</title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link id="theme-stylesheet" rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
     <div class="container-with-sidebar">
@@ -31,7 +71,7 @@ $conn->close();
 
         <div class="container">
             <header>
-                <h1>Make a Sale</h1>
+                <h1>Sales</h1>
             </header>
 
             <section>
@@ -42,78 +82,99 @@ $conn->close();
                     <div class="alert-danger"><?php echo htmlspecialchars($_GET['error']); ?></div>
                 <?php endif; ?>
 
-                <h2>New Sale Form</h2>
+                <h2>Make a New Sale</h2>
+                <form action="pages/process_sale.php" method="POST" onsubmit="return validateForm()">
+                    <div id="itemsContainer">
+                        <div class="item-row form-group">
+                            <label for="product_id">Product:</label>
+                            <select id="product_id" name="product_id[]" class="product-select input" required>
+                                <option value="">Select Product</option>
+                                <?php while ($product = $products_result->fetch_assoc()): ?>
+                                    <option value="<?php echo $product['id']; ?>" data-price="<?php echo $product['price']; ?>"><?php echo htmlspecialchars($product['product_name']); ?></option>
+                                <?php endwhile; ?>
+                            </select>
+                            <label for="quantity">Quantity:</label>
+                            <input type="number" id="quantity" name="quantity[]" class="quantity-input input" min="1" required>
+                            <span>Subtotal: <span class="subtotal">0.00</span></span>
+                            <button type="button" class="button small add-item" onclick="addItemRow()">Add Item</button>
+                            <button type="button" class="button small danger remove-item" onclick="removeItemRow(this)">Remove</button>
+                        </div>
+                    </div>
 
-                <form action="pages/process_sale.php" method="POST" id="saleForm" onsubmit="return validateForm()">
                     <div class="form-group">
-                        <label for="customer_id">Customer (Optional):</label>
+                        <label for="customer_id">Customer (optional for credit):</label>
                         <select id="customer_id" name="customer_id">
                             <option value="">Anonymous</option>
-                            <?php while ($row = $customers_result->fetch_assoc()): ?>
-                                <option value="<?php echo $row['id']; ?>">
-                                    <?php echo htmlspecialchars($row['customer_name']); ?>
-                                </option>
+                            <?php while ($customer = $customers_result->fetch_assoc()): ?>
+                                <option value="<?php echo $customer['id']; ?>"><?php echo htmlspecialchars($customer['customer_name']); ?></option>
                             <?php endwhile; ?>
                         </select>
                     </div>
 
                     <div class="form-group">
                         <label for="payment_type">Payment Type:</label>
-                        <select id="payment_type" name="payment_type" required onchange="toggleCashFields()">
+                        <select id="payment_type" name="payment_type" onchange="toggleCashFields()" required>
                             <option value="cash">Cash</option>
                             <option value="credit">Credit</option>
                         </select>
                     </div>
 
-                    <div id="itemsContainer">
-                        <div class="item-row" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center;">
-                            <div class="form-group">
-                                <label>Product:</label>
-                                <select name="product_id[]" required class="product-select" onchange="calculateSubtotal(this.closest('.item-row'))" style="width: 200px;">
-                                    <option value="">Select Product</option>
-                                    <?php 
-                                    $products_result->data_seek(0);
-                                    while ($row = $products_result->fetch_assoc()): ?>
-                                        <option value="<?php echo $row['id']; ?>" data-price="<?php echo $row['price']; ?>">
-                                            <?php echo htmlspecialchars($row['product_name']); ?>
-                                        </option>
-                                    <?php endwhile; ?>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Quantity:</label>
-                                <input type="number" name="quantity[]" min="1" required class="quantity-input" onchange="calculateSubtotal(this.closest('.item-row'))">
-                            </div>
-                            <div class="form-group">
-                                <label>Subtotal:</label>
-                                <span>₱<span class="subtotal">0.00</span></span>
-                            </div>
-                            <div class="form-group">
-                                <button type="button" class="button small" onclick="removeItemRow(this)">Remove</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <button type="button" class="button" onclick="addItemRow()">Add Another Item</button>
-                    </div>
-
-                    <div id="cashFields" style="display: block;">
+                    <div id="cashFields" style="display: none;">
                         <div class="form-group">
                             <label for="cash_tendered">Cash Tendered:</label>
-                            <input type="number" id="cash_tendered" name="cash_tendered" step="0.01" min="0" onchange="calculateTotal()">
+                            <input type="number" id="cash_tendered" name="cash_tendered" step="0.01" min="0">
                         </div>
-                        <div class="form-group">
-                            <label>Total Amount: </label><span id="total_amount">0.00</span>
-                        </div>
-                        <div class="form-group">
-                            <label>Change: </label><span id="change">0.00</span>
-                        </div>
+                        <p>Change: <span id="change">0.00</span></p>
                     </div>
 
-                    <div class="form-group">
-                        <button type="submit" class="button">Complete Sale</button>
-                    </div>
+                    <p>Total: <span id="total_amount">0.00</span></p>
+
+                    <button type="submit" class="button">Record Sale</button>
                 </form>
+
+                <h2>Sales List</h2>
+                <form method="GET">
+                    <input type="text" name="search" placeholder="Search by customer or type..." value="<?php echo htmlspecialchars($search); ?>">
+                    <select multiple name="payment_types[]">
+                        <?php foreach ($all_payment_types as $type): ?>
+                            <option value="<?php echo htmlspecialchars($type); ?>" <?php if (in_array($type, $payment_types)) echo 'selected'; ?>><?php echo ucfirst($type); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <button type="submit" class="button">Filter</button>
+                </form>
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Customer</th>
+                            <th>Total Amount</th>
+                            <th>Payment Type</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php while ($sale = $sales_result->fetch_assoc()): ?>
+                            <tr>
+                                <td><?php echo $sale['id']; ?></td>
+                                <td><?php echo htmlspecialchars($sale['customer_name'] ?? 'Anonymous'); ?></td>
+                                <td>₱<?php echo number_format($sale['total_amount'], 2); ?></td>
+                                <td><?php echo ucfirst($sale['payment_type']); ?></td>
+                                <td><?php echo $sale['created_at']; ?></td>
+                                <td>
+                                    <a href="pages/receipt.php?id=<?php echo $sale['id']; ?>" class="button small">View Receipt</a>
+                                </td>
+                            </tr>
+                        <?php endwhile; ?>
+                    </tbody>
+                </table>
+
+                <div class="pagination">
+                    <?php for ($i = 1; $i <= $pages; $i++): ?>
+                        <a href="sales.php?page=<?php echo $i; ?>&search=<?php echo urlencode($search); ?>&payment_types=<?php echo implode('&payment_types[]=', array_map('urlencode', $payment_types)); ?>" <?php if ($i == $page) echo 'class="active"'; ?>><?php echo $i; ?></a>
+                    <?php endfor; ?>
+                </div>
             </section>
 
             <footer>
@@ -206,5 +267,6 @@ $conn->close();
             }
         };
     </script>
+    <script src="assets/js/scripts.js"></script>
 </body>
 </html>

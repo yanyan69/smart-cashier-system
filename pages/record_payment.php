@@ -1,153 +1,125 @@
 <?php
 session_start();
-include '../includes/session.php';
-if (!isStoreOwner()) {
-    header("Location: ../unauthorized.php");
-    exit;
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'owner') {
+    header("Location: /smart-cashier-system/index.php");
+    exit();
 }
+
 include '../config/db.php';
 
-// Fetch credit details if ID is provided
-if (isset($_GET['credit_id']) && is_numeric($_GET['credit_id'])) {
-    $credit_id = $_GET['credit_id'];
-    $sql = "SELECT
-                c.id AS credit_id,
-                cust.id AS customer_id,
-                cust.customer_name,
-                c.total_credit,
-                c.balance
-            FROM credits c
-            JOIN customers cust ON c.customer_id = cust.id
-            WHERE c.id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $credit_id);
+$user_id = $_SESSION['user_id'];
+
+if (isset($_GET['credit_id'])) {
+    $credit_id = intval($_GET['credit_id']);
+    $stmt = $conn->prepare("SELECT cr.id AS credit_id, c.customer_name, cr.amount_owed, cr.amount_paid, cr.status 
+                            FROM credit cr LEFT JOIN customer c ON cr.customer_id = c.id 
+                            WHERE cr.id = ? AND cr.user_id = ?");
+    $stmt->bind_param("ii", $credit_id, $user_id);
     $stmt->execute();
-    $result = $stmt->get_result();
-    if ($result->num_rows === 1) {
-        $credit = $result->fetch_assoc();
-    } else {
-        header("Location: credits.php?error=Credit record not found");
-        exit;
-    }
-    $stmt->close();
-} else {
-    header("Location: credits.php?error=Invalid credit ID");
-    exit;
-}
-
-// Handle payment submission
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    error_log("POST Request Received");
-    error_log("$_POST contents: " . print_r($_POST, true));
-    if (isset($_POST['credit_id'])) {
-        error_log("credit_id is set: " . $_POST['credit_id']);
-    } else {
-        error_log("credit_id is NOT set");
-    }
-    if (isset($_POST['amount_paid'])) {
-        error_log("amount_paid is set: " . $_POST['amount_paid']);
-    } else {
-        error_log("amount_paid is NOT set");
+    $credit = $stmt->get_result()->fetch_assoc();
+    if (!$credit) {
+        header("Location: credits.php?error=Invalid credit ID");
+        exit();
     }
 
-    if (isset($_POST['credit_id']) && is_numeric($_POST['credit_id'])) {
-        $credit_id = $_POST['credit_id'];
-        $amount_paid = $_POST['amount_paid'];
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        $amount_paid = floatval($_POST['amount_paid']);
 
-        if (!is_numeric($amount_paid) || $amount_paid <= 0) {
-            header("Location: record_payment.php?credit_id=" . $credit_id . "&error=Invalid payment amount");
-            exit;
-        }
-
-        // Start transaction
         $conn->begin_transaction();
         $payment_successful = true;
-        $error_message = null; // Initialize error message
+        $error_message = "";
 
-        // 1. Insert the payment record
-        $sql_payment = "INSERT INTO credit_payments (credit_id, payment_date, amount_paid)
-                        VALUES (?, NOW(), ?)";
+        // Record payment
+        $sql_payment = "INSERT INTO payment_history (credit_id, payment_amount) VALUES (?, ?)";
         $stmt_payment = $conn->prepare($sql_payment);
         $stmt_payment->bind_param("id", $credit_id, $amount_paid);
         if (!$stmt_payment->execute()) {
             $payment_successful = false;
             $error_message = "Error recording payment: " . $stmt_payment->error;
-            error_log("Payment INSERT error: " . $stmt_payment->error);
         }
         $stmt_payment->close();
 
-        // 2. Update the credit balance
+        // Update credit balance
         if ($payment_successful) {
-            $sql_update_credit = "UPDATE credits SET balance = balance - ?, last_payment_date = NOW() WHERE id = ?";
+            $sql_update_credit = "UPDATE credit SET amount_paid = amount_paid + ?, status = 
+                                  CASE WHEN amount_paid + ? >= amount_owed THEN 'paid' 
+                                       WHEN amount_paid + ? > 0 THEN 'partially_paid' 
+                                       ELSE 'unpaid' END 
+                                  WHERE id = ? AND user_id = ?";
             $stmt_update_credit = $conn->prepare($sql_update_credit);
-            $stmt_update_credit->bind_param("di", $amount_paid, $credit_id);
+            $stmt_update_credit->bind_param("ddii", $amount_paid, $amount_paid, $amount_paid, $credit_id, $user_id);
             if (!$stmt_update_credit->execute()) {
                 $payment_successful = false;
-                $error_message = "Error updating credit balance: " . $stmt_update_credit->error;
-                error_log("Balance UPDATE error: " . $stmt_update_credit->error);
+                $error_message = "Error updating credit: " . $stmt_update_credit->error;
             }
             $stmt_update_credit->close();
-        }
-
-        // 3. Update the credit status if necessary
-        if ($payment_successful) {
-            $sql_update_status = "UPDATE credits SET status =
-                                    CASE
-                                        WHEN balance <= 0 THEN 'fully paid'
-                                        WHEN balance < total_credit THEN 'partially paid'
-                                        ELSE 'unpaid'
-                                    END
-                                  WHERE id = ?";
-            $stmt_update_status = $conn->prepare($sql_update_status);
-            $stmt_update_status->bind_param("i", $credit_id);
-            if (!$stmt_update_status->execute()) {
-                $payment_successful = false;
-                $error_message = "Error updating credit status: " . $stmt_update_status->error;
-                error_log("Status UPDATE error: " . $stmt_update_status->error);
-            }
-            $stmt_update_status->close();
         }
 
         if ($payment_successful) {
             $conn->commit();
             header("Location: credits.php?success=Payment recorded successfully");
-            exit;
+            exit();
         } else {
             $conn->rollback();
             header("Location: record_payment.php?credit_id=" . $credit_id . "&error=" . urlencode($error_message));
-            exit;
+            exit();
         }
-
-        $conn->close();
-    } else {
-        header("Location: credits.php?error=Invalid credit ID");
-        exit;
     }
+} else {
+    header("Location: credits.php?error=Invalid credit ID");
+    exit();
 }
+
+$conn->close();
 ?>
 
-<?php include '../includes/header.php'; ?>
-<?php include '../includes/sidebar.php'; ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="/smart-cashier-system/">
+    <title>Record Payment - Smart Cashier System</title>
+    <link id="theme-stylesheet" rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <div class="container-with-sidebar">
+        <?php include '../includes/sidebar.php'; ?>
+        <div class="container">
+            <header>
+                <h1>Record Payment</h1>
+            </header>
+            <section>
+                <p>Record a payment for the credit of <strong><?php echo htmlspecialchars($credit['customer_name']); ?></strong>.</p>
 
-<div class="content">
-    <h1>Record Payment</h1>
-    <p>Record a payment for the credit of <strong><?php echo htmlspecialchars($credit['customer_name']); ?></strong>.</p>
+                <?php if (isset($_GET['error'])): ?>
+                    <div class="alert-danger"><?php echo htmlspecialchars($_GET['error']); ?></div>
+                <?php endif; ?>
 
-    <?php if (isset($_GET['error'])): ?>
-        <div class="alert-danger"><?php echo htmlspecialchars($_GET['error']); ?></div>
-    <?php endif; ?>
-
-    <form method="POST" action="record_payment.php">
-        <input type="hidden" name="credit_id" value="<?php echo htmlspecialchars($credit['credit_id']); ?>">
-        <div class="form-group">
-            <label for="amount_paid">Amount Paid:</label>
-            <input type="number" step="0.01" id="amount_paid" name="amount_paid" required>
+                <form method="POST" action="record_payment.php?credit_id=<?php echo $credit['credit_id']; ?>">
+                    <div class="form-group">
+                        <label for="amount_paid">Amount Paid:</label>
+                        <input type="number" step="0.01" id="amount_paid" name="amount_paid" required>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="button">Record Payment</button>
+                    </div>
+                    <p><a href="credits.php">Back to Credits</a></p>
+                </form>
+            </section>
+            <footer>
+                <p>&copy; 2025 Techlaro Company</p>
+            </footer>
         </div>
-        <div class="form-group">
-            <button type="submit" class="button">Record Payment</button>
-        </div>
-        <p><a href="credits.php">Back to Credits</a></p>
-    </form>
-</div>
-
-<?php include '../includes/footer.php'; ?>
+    </div>
+    <script src="assets/js/scripts.js"></script>
+    <script>
+        window.onload = function() {
+            const container = document.querySelector('.container');
+            if (container) {
+                container.scrollIntoView({ behavior: 'smooth' });
+            }
+        };
+    </script>
+</body>
+</html>

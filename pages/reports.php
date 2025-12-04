@@ -7,14 +7,26 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'owner') {
 
 include '../config/db.php';
 
-// Get today's date in YYYY-MM-DD format
+$user_id = $_SESSION['user_id'];
+$role = $_SESSION['role'];
+
 $today = date('Y-m-d');
 
-// For Inventory Report: Fetch all products, sort by stock low to high
-$inventory_query = "SELECT id, product_name, price, stock FROM product ORDER BY stock ASC";
+// Inventory Report: With scoping, pagination (no tags, but sorted by stock)
+$page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+$limit = 10;
+$offset = ($page - 1) * $limit;
+
+$where = ($role === 'owner') ? "WHERE (user_id = $user_id OR user_id IS NULL)" : "";
+
+$total_query = "SELECT COUNT(*) FROM product $where";
+$total = $conn->query($total_query)->fetch_row()[0];
+$pages = ceil($total / $limit);
+
+$inventory_query = "SELECT id, product_name, price, stock, unit FROM product $where ORDER BY stock ASC LIMIT $limit OFFSET $offset";
 $inventory_result = $conn->query($inventory_query);
 
-$low_stock_threshold = 10; // Define low stock as < 10
+$low_stock_threshold = 10;
 
 $conn->close();
 ?>
@@ -26,7 +38,7 @@ $conn->close();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <base href="/smart-cashier-system/">
     <title>Reports - Smart Cashier System</title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link id="theme-stylesheet" rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
     <div class="container-with-sidebar">
@@ -42,13 +54,15 @@ $conn->close();
 
                 <h2>Sales Report</h2>
                 <form action="pages/generate_sales_report.php" method="GET">
-                    <div class="form-group">
-                        <label for="start_date">Start Date:</label>
-                        <input type="date" id="start_date" name="start_date" value="<?php echo $today; ?>" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="end_date">End Date:</label>
-                        <input type="date" id="end_date" name="end_date" value="<?php echo $today; ?>" required>
+                    <div class="form-group date-filter" style="display: flex; gap: 10px;">
+                        <div>
+                            <label for="start_date">Start Date:</label>
+                            <input type="date" id="start_date" name="start_date" value="<?php echo $today; ?>" required>
+                        </div>
+                        <div>
+                            <label for="end_date">End Date:</label>
+                            <input type="date" id="end_date" name="end_date" value="<?php echo $today; ?>" required>
+                        </div>
                     </div>
                     <button type="submit" class="button">Generate Sales Report</button>
                 </form>
@@ -70,11 +84,17 @@ $conn->close();
                                 <td><?php echo $product['id']; ?></td>
                                 <td><?php echo htmlspecialchars($product['product_name']); ?></td>
                                 <td>₱<?php echo number_format($product['price'], 2); ?></td>
-                                <td><?php echo $product['stock']; ?></td>
+                                <td><?php echo $product['stock']; ?> <?php echo $product['unit']; ?></td>
                             </tr>
                         <?php endwhile; ?>
                     </tbody>
                 </table>
+
+                <div class="pagination">
+                    <?php for ($i = 1; $i <= $pages; $i++): ?>
+                        <a href="?page=<?php echo $i; ?>" <?php if ($i == $page) echo 'class="active"'; ?>><?php echo $i; ?></a>
+                    <?php endfor; ?>
+                </div>
 
                 <h2>Credit Report</h2>
                 <p>View outstanding credits summary.</p>
@@ -86,6 +106,7 @@ $conn->close();
             </footer>
         </div>
     </div>
+    <script src="assets/js/scripts.js"></script>
     <script>
         window.onload = function() {
             const container = document.querySelector('.container');

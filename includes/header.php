@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Smart Business Cashier and Management System</title>
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <base href="/smart-cashier-system/">
+    <link id="theme-stylesheet" rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>

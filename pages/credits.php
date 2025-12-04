@@ -85,7 +85,7 @@ $conn->close();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <base href="/smart-cashier-system/">
     <title>Credits - Smart Cashier System</title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link id="theme-stylesheet" rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
     <div class="container-with-sidebar">
@@ -93,7 +93,7 @@ $conn->close();
 
         <div class="container">
             <header>
-                <h1>Manage Credits</h1>
+                <h1>Credits</h1>
             </header>
 
             <section>
@@ -104,25 +104,20 @@ $conn->close();
                     <div class="alert-danger"><?php echo htmlspecialchars($_GET['error']); ?></div>
                 <?php endif; ?>
 
-                <h2>Filters</h2>
+                <h2>Outstanding Credits</h2>
+                <p>Total Outstanding: ₱<?php echo number_format($total_outstanding, 2); ?></p>
+
                 <form method="GET">
-                    <div class="form-group">
-                        <label for="customer">Customer Name:</label>
-                        <input type="text" id="customer" name="customer" value="<?php echo htmlspecialchars($customer_filter); ?>">
-                    </div>
-                    <div class="form-group">
-                        <label for="status">Status:</label>
-                        <select id="status" name="status">
-                            <option value="">All Outstanding</option>
-                            <option value="unpaid" <?php if ($status_filter === 'unpaid') echo 'selected'; ?>>Unpaid</option>
-                            <option value="partially_paid" <?php if ($status_filter === 'partially_paid') echo 'selected'; ?>>Partially Paid</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="button">Apply Filters</button>
+                    <input type="text" name="customer" placeholder="Filter by customer..." value="<?php echo htmlspecialchars($customer_filter); ?>">
+                    <select name="status">
+                        <option value="">All Statuses</option>
+                        <option value="unpaid" <?php if ($status_filter === 'unpaid') echo 'selected'; ?>>Unpaid</option>
+                        <option value="partially_paid" <?php if ($status_filter === 'partially_paid') echo 'selected'; ?>>Partially Paid</option>
+                    </select>
+                    <button type="submit" class="button">Filter</button>
                 </form>
 
-                <h2>Outstanding Credits (Total: ₱<?php echo number_format($total_outstanding, 2); ?>)</h2>
-                <div class="table-wrapper" style="overflow-x: auto;"> <!-- Added wrapper for overflow -->
+                <div class="table-container">
                     <table class="table">
                         <thead>
                             <tr>
@@ -133,8 +128,8 @@ $conn->close();
                                 <th>Remaining</th>
                                 <th>Status</th>
                                 <th>Date</th>
-                                <th>Actions</th>
-                                <th>History</th>
+                                <th>Record Payment</th>
+                                <th>Payment History</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -148,7 +143,7 @@ $conn->close();
                                     <td><?php echo ucfirst($credit['status']); ?></td>
                                     <td><?php echo $credit['created_at']; ?></td>
                                     <td>
-                                        <form action="pages/credits.php" method="POST" style="display:inline;">
+                                        <form method="POST">
                                             <input type="hidden" name="credit_id" value="<?php echo $credit['id']; ?>">
                                             <input type="number" name="payment_amount" step="0.01" min="0.01" placeholder="Payment Amount" required>
                                             <button type="submit" name="record_payment" class="button small">Pay</button>
@@ -206,5 +201,6 @@ $conn->close();
             }
         };
     </script>
+    <script src="assets/js/scripts.js"></script>
 </body>
 </html>

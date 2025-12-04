@@ -23,6 +23,8 @@ if (isset($input['username']) && isset($input['password'])) {
     $username = $input['username'];
     $password = $input['password'];
 
+    error_log("Login attempt for username: " . $username);
+
     $stmt = $conn->prepare("SELECT id, username, password, role FROM `user` WHERE username = ?");
     $stmt->bind_param("s", $username);
     $stmt->execute();
@@ -30,6 +32,7 @@ if (isset($input['username']) && isset($input['password'])) {
 
     if ($result->num_rows === 1) {
         $user = $result->fetch_assoc();
+        error_log("User found, verifying password...");
         if (password_verify($password, $user['password'])) {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
@@ -38,10 +41,12 @@ if (isset($input['username']) && isset($input['password'])) {
             echo json_encode(['status' => 'success', 'role' => $user['role']]);
             exit();
         } else {
+            error_log("Invalid password for user: " . $username);
             echo json_encode(['status' => 'error', 'message' => 'Invalid password']);
             exit();
         }
     } else {
+        error_log("User not found: " . $username);
         echo json_encode(['status' => 'error', 'message' => 'Invalid username']);
         exit();
     }

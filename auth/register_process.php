@@ -5,6 +5,12 @@ include '../config/db.php';
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $_POST['username'];
     $password = $_POST['password'];
+    $confirm_password = $_POST['confirm_password'];
+
+    if ($password !== $confirm_password) {
+        header("Location: ../auth/register.php?error=Passwords do not match");
+        exit();
+    }
 
     // Check if username exists
     $stmt = $conn->prepare("SELECT username FROM `user` WHERE username = ?");
@@ -25,6 +31,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->bind_param("ss", $username, $hashed_password);
 
     if ($stmt->execute()) {
+        // Clear any default data if needed (e.g., truncate tables, but caution!)
+        $conn->query("DELETE FROM `product` WHERE id > 0");  // Example: reset products
+        $conn->query("DELETE FROM `customer` WHERE id > 0");
         header("Location: ../index.php?success=Registration successful. Please login.");
         exit();
     } else {
