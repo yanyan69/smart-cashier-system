@@ -53,47 +53,61 @@ $conn->close();
                 <p>Generate reports on sales, inventory, and customer credits for different time periods.</p>
 
                 <h2>Sales Report</h2>
-                <form action="pages/generate_sales_report.php" method="GET">
-                    <div class="form-group date-filter" style="display: flex; gap: 10px;">
-                        <div>
-                            <label for="start_date">Start Date:</label>
-                            <input type="date" id="start_date" name="start_date" value="<?php echo $today; ?>" required>
+                <div class="centered-form" style="max-width: 600px; margin: 0 auto;">
+                    <form action="pages/generate_sales_report.php" method="GET">
+                        <div class="form-group date-filter" style="display: flex; gap: 10px; justify-content: center;">
+                            <div>
+                                <label for="start_date">Start Date:</label>
+                                <input type="date" id="start_date" name="start_date" value="<?php echo $today; ?>" required>
+                            </div>
+                            <div>
+                                <label for="end_date">End Date:</label>
+                                <input type="date" id="end_date" name="end_date" value="<?php echo $today; ?>" required>
+                            </div>
                         </div>
-                        <div>
-                            <label for="end_date">End Date:</label>
-                            <input type="date" id="end_date" name="end_date" value="<?php echo $today; ?>" required>
-                        </div>
-                    </div>
-                    <button type="submit" class="button">Generate Sales Report</button>
-                </form>
+                        <button type="submit" class="button">Generate Sales Report</button>
+                    </form>
+                </div>
 
                 <h2>Inventory Report</h2>
-                <p>Current stock levels. Low stock items (below <?php echo $low_stock_threshold; ?>) are highlighted in red.</p>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Product Name</th>
-                            <th>Price</th>
-                            <th>Stock</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php while ($product = $inventory_result->fetch_assoc()): ?>
-                            <tr <?php if ($product['stock'] < $low_stock_threshold) echo 'style="background-color: #ffcccc;"'; ?>>
-                                <td><?php echo $product['id']; ?></td>
-                                <td><?php echo htmlspecialchars($product['product_name']); ?></td>
-                                <td>₱<?php echo number_format($product['price'], 2); ?></td>
-                                <td><?php echo $product['stock']; ?> <?php echo $product['unit']; ?></td>
+                <p>Generate BIR-compliant ending inventory report. Current stock levels are shown below for reference (low stock items below <?php echo $low_stock_threshold; ?> are highlighted in red).</p>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Product Name</th>
+                                <th>Price</th>
+                                <th>Stock</th>
                             </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <?php while ($product = $inventory_result->fetch_assoc()): ?>
+                                <tr <?php if ($product['stock'] < $low_stock_threshold) echo 'style="background-color: #ffcccc;"'; ?>>
+                                    <td><?php echo $product['id']; ?></td>
+                                    <td><?php echo htmlspecialchars($product['product_name']); ?></td>
+                                    <td>₱<?php echo number_format($product['price'], 2); ?></td>
+                                    <td><?php echo $product['stock']; ?> <?php echo $product['unit']; ?></td>
+                                </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                </div>
 
                 <div class="pagination">
                     <?php for ($i = 1; $i <= $pages; $i++): ?>
                         <a href="?page=<?php echo $i; ?>" <?php if ($i == $page) echo 'class="active"'; ?>><?php echo $i; ?></a>
                     <?php endfor; ?>
+                </div>
+
+                <div class="centered-form" style="max-width: 600px; margin: 20px auto;">
+                    <form action="pages/generate_inventory_report.php" method="GET">
+                        <div class="form-group">
+                            <label for="as_of_date">As of Date:</label>
+                            <input type="date" id="as_of_date" name="as_of_date" value="<?php echo $today; ?>" required>
+                        </div>
+                        <button type="submit" class="button">Generate Inventory Report</button>
+                    </form>
                 </div>
 
                 <h2>Credit Report</h2>

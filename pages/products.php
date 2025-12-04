@@ -88,33 +88,35 @@ $conn->close();
                     <button type="submit" class="button">Search/Filter</button>
                 </form>
 
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Price</th>
-                            <th>Stock</th>
-                            <th>Unit</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php while ($product = $products_result->fetch_assoc()): ?>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
                             <tr>
-                                <td><?php echo $product['id']; ?></td>
-                                <td><?php echo htmlspecialchars($product['product_name']); ?></td>
-                                <td>₱<?php echo number_format($product['price'], 2); ?></td>
-                                <td><?php echo $product['stock']; ?></td>
-                                <td><?php echo htmlspecialchars($product['unit']); ?></td>
-                                <td>
-                                    <a href="#" class="button small" onclick="showEditForm(<?php echo $product['id']; ?>, '<?php echo addslashes(htmlspecialchars($product['product_name'])); ?>', <?php echo $product['price']; ?>, <?php echo $product['stock']; ?>, '<?php echo addslashes(htmlspecialchars($product['unit'])); ?>', '<?php echo addslashes(htmlspecialchars($product['category'] ?? '')); ?>'); return false;">Edit</a>
-                                    <a href="pages/process_product.php?action=delete&id=<?php echo $product['id']; ?>" class="button small danger" onclick="return confirm('Are you sure?');">Delete</a>
-                                </td>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Unit</th>
+                                <th>Actions</th>
                             </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <?php while ($product = $products_result->fetch_assoc()): ?>
+                                <tr>
+                                    <td><?php echo $product['id']; ?></td>
+                                    <td><?php echo htmlspecialchars($product['product_name']); ?></td>
+                                    <td>₱<?php echo number_format($product['price'], 2); ?></td>
+                                    <td><?php echo $product['stock']; ?></td>
+                                    <td><?php echo htmlspecialchars($product['unit']); ?></td>
+                                    <td>
+                                        <a href="#" class="button small" onclick="showEditForm(<?php echo $product['id']; ?>, '<?php echo addslashes(htmlspecialchars($product['product_name'])); ?>', <?php echo $product['price']; ?>, <?php echo $product['stock']; ?>, '<?php echo addslashes(htmlspecialchars($product['unit'])); ?>', '<?php echo addslashes(htmlspecialchars($product['category'] ?? '')); ?>'); return false;">Edit</a>
+                                        <a href="pages/process_product.php?action=delete&id=<?php echo $product['id']; ?>" class="button small danger" onclick="return confirm('Are you sure?');">Delete</a>
+                                    </td>
+                                </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                </div>
 
                 <div class="pagination">
                     <?php for ($i = 1; $i <= $pages; $i++): ?>
@@ -122,35 +124,42 @@ $conn->close();
                     <?php endfor; ?>
                 </div>
 
-                <button onclick="toggleAddForm()" class="button">Add New Product</button>
-                <form id="addProductForm" action="pages/process_product.php?action=add" method="POST" style="display: none;">
-                    <div class="form-group">
-                        <label for="product_name">Product Name:</label>
-                        <input type="text" id="product_name" name="product_name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="price">Price:</label>
-                        <input type="number" step="0.01" id="price" name="price" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="stock">Stock:</label>
-                        <input type="number" id="stock" name="stock" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="unit">Unit:</label>
-                        <input type="text" id="unit" name="unit" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="category">Category/Tags (comma-separated):</label>
-                        <input type="text" id="category" name="category">
-                    </div>
-                    <div class="form-group">
-                        <button type="submit" class="button">Add Product</button>
-                    </div>
-                </form>
+                <button onclick="showAddForm()" class="button">Add New Product</button>
 
-                <div id="edit-modal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; overflow: auto;">
-                    <div class="modal-content" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 600px; padding: 20px 20px 40px 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); background-color: #1e1e1e;">
+                <div id="add-modal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; overflow: auto; justify-content: center; align-items: center;">
+                    <div class="modal-content" style="width: 80%; max-width: 600px; max-height: 80vh; overflow-y: auto; padding: 20px 20px 40px 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); background-color: #1e1e1e;">
+                        <span id="close-add-modal" class="close" style="cursor: pointer; float: right; font-size: 24px;">×</span>
+                        <h2>Add Product</h2>
+                        <form action="pages/process_product.php?action=add" method="POST">
+                            <div class="form-group">
+                                <label for="product_name">Product Name:</label>
+                                <input type="text" id="product_name" name="product_name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="price">Price:</label>
+                                <input type="number" step="0.01" id="price" name="price" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="stock">Stock:</label>
+                                <input type="number" id="stock" name="stock" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="unit">Unit:</label>
+                                <input type="text" id="unit" name="unit" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="category">Category/Tags (comma-separated):</label>
+                                <input type="text" id="category" name="category">
+                            </div>
+                            <div class="form-group">
+                                <button type="submit" class="button">Add Product</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="edit-modal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; overflow: auto; justify-content: center; align-items: center;">
+                    <div class="modal-content" style="width: 80%; max-width: 600px; max-height: 80vh; overflow-y: auto; padding: 20px 20px 40px 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); background-color: #1e1e1e;">
                         <span id="close-edit-modal" class="close" style="cursor: pointer; float: right; font-size: 24px;">×</span>
                         <h2>Edit Product</h2>
                         <form action="pages/process_product.php?action=update" method="POST">
@@ -189,10 +198,6 @@ $conn->close();
     </div>
     <script src="assets/js/scripts.js"></script>
     <script>
-        function toggleAddForm() {
-            const form = document.getElementById('addProductForm');
-            form.style.display = form.style.display === 'none' ? 'block' : 'none';
-        }
         window.onload = function() {
             const container = document.querySelector('.container');
             if (container) {
@@ -214,6 +219,21 @@ $conn->close();
                     }
                 });
             }
+
+            const addModal = document.getElementById('add-modal');
+            const closeAddModal = document.getElementById('close-add-modal');
+            if (closeAddModal && addModal) {
+                closeAddModal.addEventListener('click', () => {
+                    addModal.style.display = 'none';
+                });
+            }
+            if (addModal) {
+                window.addEventListener('click', (event) => {
+                    if (event.target === addModal) {
+                        addModal.style.display = 'none';
+                    }
+                });
+            }
         });
         function showEditForm(id, name, price, stock, unit, category) {
             document.getElementById('edit_id').value = id;
@@ -222,7 +242,10 @@ $conn->close();
             document.getElementById('edit_stock').value = stock;
             document.getElementById('edit_unit').value = unit;
             document.getElementById('edit_category').value = category;
-            document.getElementById('edit-modal').style.display = 'block';
+            document.getElementById('edit-modal').style.display = 'flex';
+        }
+        function showAddForm() {
+            document.getElementById('add-modal').style.display = 'flex';
         }
     </script>
 </body>

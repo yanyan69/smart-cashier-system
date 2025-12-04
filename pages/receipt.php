@@ -34,6 +34,10 @@ $stmt_items->execute();
 $items_result = $stmt_items->get_result();
 $stmt_items->close();
 
+// Get cash tendered and change from query params if available (for new sales)
+$cash_tendered = isset($_GET['cash_tendered']) ? floatval($_GET['cash_tendered']) : null;
+$change = isset($_GET['change']) ? floatval($_GET['change']) : null;
+
 $conn->close();
 ?>
 
@@ -146,29 +150,35 @@ $conn->close();
                         </div>
                     </div>
 
-                    <table class="receipt-table">
-                        <thead>
-                            <tr>
-                                <th>Product</th>
-                                <th>Quantity</th>
-                                <th>Price</th>
-                                <th>Subtotal</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php while ($item = $items_result->fetch_assoc()): ?>
+                    <div class="table-responsive">
+                        <table class="receipt-table">
+                            <thead>
                                 <tr>
-                                    <td><?php echo htmlspecialchars($item['product_name']); ?></td>
-                                    <td><?php echo $item['quantity']; ?></td>
-                                    <td>₱<?php echo number_format($item['price_at_sale'], 2); ?></td>
-                                    <td>₱<?php echo number_format($item['quantity'] * $item['price_at_sale'], 2); ?></td>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                    <th>Subtotal</th>
                                 </tr>
-                            <?php endwhile; ?>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                <?php while ($item = $items_result->fetch_assoc()): ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($item['product_name']); ?></td>
+                                        <td><?php echo $item['quantity']; ?></td>
+                                        <td>₱<?php echo number_format($item['price_at_sale'], 2); ?></td>
+                                        <td>₱<?php echo number_format($item['quantity'] * $item['price_at_sale'], 2); ?></td>
+                                    </tr>
+                                <?php endwhile; ?>
+                            </tbody>
+                        </table>
+                    </div>
 
                     <div class="receipt-total">
                         Total Amount: ₱<?php echo number_format($sale['total_amount'], 2); ?>
+                        <?php if ($sale['payment_type'] === 'cash' && $cash_tendered !== null && $change !== null): ?>
+                            <br>Cash Tendered: ₱<?php echo number_format($cash_tendered, 2); ?>
+                            <br>Change: ₱<?php echo number_format($change, 2); ?>
+                        <?php endif; ?>
                     </div>
 
                     <div class="receipt-footer">
@@ -178,6 +188,7 @@ $conn->close();
                 </div>
 
                 <button class="print-button" onclick="window.print()">Print Receipt</button>
+                <a href="pages/sales.php" class="button" style="display: block; margin: 20px auto; text-align: center; width: fit-content;">Make Another Sale</a>
             </section>
 
             <footer>
@@ -186,5 +197,13 @@ $conn->close();
         </div>
     </div>
     <script src="assets/js/scripts.js"></script>
+    <script>
+        window.onload = function() {
+            const container = document.querySelector('.container');
+            if (container) {
+                container.scrollIntoView({ behavior: 'smooth' });
+            }
+        };
+    </script>
 </body>
 </html>

@@ -33,23 +33,23 @@ include '../includes/header.php';
 
             <h2>Our Team</h2>
             <div class="team-members">
-                <a href="https://example.com/christian-narvaez" class="team-member">
-                    <img src="../assets/images/christian.jpg" alt="Christian L. Narvaez">
+                <a href="https://yanyan69.github.io/yanyan.github.io/" class="team-member">
+                    <img src="assets/images/christian.jpg" alt="Christian L. Narvaez">
                     <h3>Christian L. Narvaez</h3>
                     <p>Full-Stack Developer</p>
                 </a>
                 <a href="https://example.com/johnpaul-armenta" class="team-member">
-                    <img src="../assets/images/johnpaul.jpg" alt="John Paul F. Armenta">
+                    <img src="assets/images/johnpaul.jpg" alt="John Paul F. Armenta">
                     <h3>John Paul F. Armenta</h3>
                     <p>Back-end Developer</p>
                 </a>
                 <a href="https://example.com/jerald-preclaro" class="team-member">
-                    <img src="../assets/images/jerald.jpg" alt="Jerald James D. Preclaro">
+                    <img src="assets/images/jerald.jpg" alt="Jerald James D. Preclaro">
                     <h3>Jerald James D. Preclaro</h3>
                     <p>Front-end Developer</p>
                 </a>
                 <a href="https://example.com/marielle-maming" class="team-member">
-                    <img src="../assets/images/marielle.jpg" alt="Marielle B. Maming">
+                    <img src="assets/images/marielle.jpg" alt="Marielle B. Maming">
                     <h3>Marielle B. Maming</h3>
                     <p>Database Administrator</p>
                 </a>

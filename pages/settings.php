@@ -1,9 +1,4 @@
 <?php
-session_start();
-if (!isset($_SESSION['user_id'])) {
-    header("Location: /smart-cashier-system/index.php");
-    exit();
-}
 ?>
 <!DOCTYPE html>
 <html lang="en">

@@ -22,35 +22,48 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Fetch total sales data from the 'sale' table
-$total_sales_query = "SELECT SUM(total_amount) AS total_sales FROM sale";
-$total_sales_result = $conn->query($total_sales_query);
+// Prepare user_id for filtering
+$user_id = $_SESSION['user_id'];
+
+// Fetch total sales data from the 'sale' table (system-wide)
+$total_sales_stmt = $conn->prepare("SELECT SUM(total_amount) AS total_sales FROM sale");
+$total_sales_stmt->execute();
+$total_sales_result = $total_sales_stmt->get_result();
 $total_sales = $total_sales_result->fetch_assoc()['total_sales'] ?? 0;
+$total_sales_stmt->close();
 
-// Fetch total products
-$total_products_query = "SELECT COUNT(*) AS total_products FROM product WHERE created_at > '1970-01-01'";
-$total_products_result = $conn->query($total_products_query);
+// Fetch total products (system-wide)
+$total_products_stmt = $conn->prepare("SELECT COUNT(*) AS total_products FROM product WHERE created_at > '1970-01-01'");
+$total_products_stmt->execute();
+$total_products_result = $total_products_stmt->get_result();
 $total_products = $total_products_result->fetch_assoc()['total_products'] ?? 0;
+$total_products_stmt->close();
 
-// Fetch total customers
-$total_customers_query = "SELECT COUNT(*) AS total_customers FROM customer WHERE created_at > '1970-01-01'";
-$total_customers_result = $conn->query($total_customers_query);
+// Fetch total customers (system-wide)
+$total_customers_stmt = $conn->prepare("SELECT COUNT(*) AS total_customers FROM customer WHERE created_at > '1970-01-01'");
+$total_customers_stmt->execute();
+$total_customers_result = $total_customers_stmt->get_result();
 $total_customers = $total_customers_result->fetch_assoc()['total_customers'] ?? 0;
+$total_customers_stmt->close();
 
-// Fetch outstanding credits
-$outstanding_credits_query = "SELECT SUM(amount_owed - amount_paid) AS outstanding FROM credit WHERE status != 'paid'";
-$outstanding_credits_result = $conn->query($outstanding_credits_query);
+// Fetch outstanding credits (system-wide)
+$outstanding_credits_stmt = $conn->prepare("SELECT SUM(amount_owed - amount_paid) AS outstanding FROM credit WHERE status != 'paid'");
+$outstanding_credits_stmt->execute();
+$outstanding_credits_result = $outstanding_credits_stmt->get_result();
 $outstanding_credits = $outstanding_credits_result->fetch_assoc()['outstanding'] ?? 0;
+$outstanding_credits_stmt->close();
 
-// Fetch low stock products from the 'product' table
-$low_stock_query = "SELECT product_name, stock FROM product WHERE stock < 10";
-$low_stock_result = $conn->query($low_stock_query);
+// Fetch low stock products from the 'product' table (system-wide)
+$low_stock_stmt = $conn->prepare("SELECT product_name, stock FROM product WHERE stock < 10");
+$low_stock_stmt->execute();
+$low_stock_result = $low_stock_stmt->get_result();
 
-// Fetch recent sales with customer info using JOIN on 'sale' and 'customer' tables
-$recent_sales_query = "SELECT s.id, c.customer_name, s.total_amount, s.created_at 
+// Fetch recent sales with customer info using JOIN on 'sale' and 'customer' tables (system-wide)
+$recent_sales_stmt = $conn->prepare("SELECT s.id, c.customer_name, s.total_amount, s.created_at 
                       FROM sale s LEFT JOIN customer c ON s.customer_id = c.id 
-                      ORDER BY s.created_at DESC LIMIT 5";
-$recent_sales_result = $conn->query($recent_sales_query);
+                      ORDER BY s.created_at DESC LIMIT 5");
+$recent_sales_stmt->execute();
+$recent_sales_result = $recent_sales_stmt->get_result();
 
 // Close the database connection
 $conn->close();
@@ -95,95 +108,101 @@ if ($hour >= 5 && $hour < 12) {
                 <!-- Overview heading -->
                 <h2>Overview</h2>
                 <!-- Display statistics in a vertical table -->
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Statistic</th>
-                            <th>Value</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Total Sales</td>
-                            <td>$<?php echo number_format($total_sales, 2); ?></td>
-                            <td><a href="pages/sales.php" class="button small">View Sales</a></td>
-                        </tr>
-                        <tr>
-                            <td>Total Products</td>
-                            <td><?php echo $total_products; ?></td>
-                            <td><a href="pages/products.php" class="button small">Manage Products</a></td>
-                        </tr>
-                        <tr>
-                            <td>Total Customers</td>
-                            <td><?php echo $total_customers; ?></td>
-                            <td><a href="pages/customers.php" class="button small">Manage Customers</a></td>
-                        </tr>
-                        <tr>
-                            <td>Outstanding Credits</td>
-                            <td>$<?php echo number_format($outstanding_credits, 2); ?></td>
-                            <td><a href="pages/credits.php" class="button small">Manage Credits</a></td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Statistic</th>
+                                <th>Value</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Total Sales</td>
+                                <td>$<?php echo number_format($total_sales, 2); ?></td>
+                                <td><a href="pages/sales.php" class="button small">View Sales</a></td>
+                            </tr>
+                            <tr>
+                                <td>Total Products</td>
+                                <td><?php echo $total_products; ?></td>
+                                <td><a href="pages/products.php" class="button small">Manage Products</a></td>
+                            </tr>
+                            <tr>
+                                <td>Total Customers</td>
+                                <td><?php echo $total_customers; ?></td>
+                                <td><a href="pages/customers.php" class="button small">Manage Customers</a></td>
+                            </tr>
+                            <tr>
+                                <td>Outstanding Credits</td>
+                                <td>$<?php echo number_format($outstanding_credits, 2); ?></td>
+                                <td><a href="pages/credits.php" class="button small">Manage Credits</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
 
                 <!-- Low stock products section -->
                 <h2>Low Stock Products</h2>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Product Name</th>
-                            <th>Stock</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if ($low_stock_result->num_rows > 0): ?>
-                            <?php while ($row = $low_stock_result->fetch_assoc()): ?>
-                                <tr>
-                                    <td><?php echo htmlspecialchars($row['product_name']); ?></td>
-                                    <td><?php echo $row['stock']; ?></td>
-                                    <td><a href="pages/products.php" class="button small">Restock</a></td>
-                                </tr>
-                            <?php endwhile; ?>
-                        <?php else: ?>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
                             <tr>
-                                <td colspan="3">No low stock products.</td>
+                                <th>Product Name</th>
+                                <th>Stock</th>
+                                <th>Action</th>
                             </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <?php if ($low_stock_result->num_rows > 0): ?>
+                                <?php while ($row = $low_stock_result->fetch_assoc()): ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($row['product_name']); ?></td>
+                                        <td><?php echo $row['stock']; ?></td>
+                                        <td><a href="pages/products.php" class="button small">Restock</a></td>
+                                    </tr>
+                                <?php endwhile; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="3">No low stock products.</td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
 
                 <!-- Recent sales section -->
                 <h2>Recent Sales</h2>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Customer</th>
-                            <th>Amount</th>
-                            <th>Date</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if ($recent_sales_result->num_rows > 0): ?>
-                            <?php while ($row = $recent_sales_result->fetch_assoc()): ?>
-                                <tr>
-                                    <td><?php echo $row['id']; ?></td>
-                                    <td><?php echo htmlspecialchars($row['customer_name'] ?? 'Anonymous'); ?></td>
-                                    <td>$<?php echo number_format($row['total_amount'], 2); ?></td>
-                                    <td><?php echo $row['created_at']; ?></td>
-                                    <td><a href="pages/receipt.php?sale_id=<?php echo $row['id']; ?>" class="button small">View Receipt</a></td>
-                                </tr>
-                            <?php endwhile; ?>
-                        <?php else: ?>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
                             <tr>
-                                <td colspan="5">No recent sales.</td>
+                                <th>ID</th>
+                                <th>Customer</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                                <th>Action</th>
                             </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <?php if ($recent_sales_result->num_rows > 0): ?>
+                                <?php while ($row = $recent_sales_result->fetch_assoc()): ?>
+                                    <tr>
+                                        <td><?php echo $row['id']; ?></td>
+                                        <td><?php echo htmlspecialchars($row['customer_name'] ?? 'Anonymous'); ?></td>
+                                        <td>$<?php echo number_format($row['total_amount'], 2); ?></td>
+                                        <td><?php echo $row['created_at']; ?></td>
+                                        <td><a href="pages/receipt.php?id=<?php echo $row['id']; ?>" class="button small">View Receipt</a></td>
+                                    </tr>
+                                <?php endwhile; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="5">No recent sales.</td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
                 <div style="text-align: center; margin-top: 10px;">
                     <a href="pages/reports.php" class="button">View All Reports</a>
                 </div>

@@ -1,4 +1,5 @@
 <?php
+// Inferred structure for credits.php based on similar pages like customers.php
 session_start();
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'owner') {
     header("Location: /smart-cashier-system/index.php");
@@ -7,73 +8,35 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'owner') {
 
 include '../config/db.php';
 
-// Pagination setup
+$user_id = $_SESSION['user_id'];
+$role = $_SESSION['role'];
+
+// Pagination and search for credits
 $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
-$limit = 10; // Items per page
+$limit = 10;
 $offset = ($page - 1) * $limit;
 
-// Filters
-$customer_filter = isset($_GET['customer']) ? $conn->real_escape_string($_GET['customer']) : '';
-$status_filter = isset($_GET['status']) ? $conn->real_escape_string($_GET['status']) : '';
+$search = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';
 
-// Handle payment submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['record_payment'])) {
-    $credit_id = intval($_POST['credit_id']);
-    $payment_amount = floatval($_POST['payment_amount']);
+$where = ($role === 'owner') ? "WHERE c.user_id = $user_id" : "";
+if ($search) $where .= ($where ? " AND" : " WHERE") . " (cu.customer_name LIKE '%$search%' OR c.status LIKE '%$search%')";
 
-    if ($payment_amount <= 0) {
-        header("Location: credits.php?error=Invalid payment amount");
-        exit();
-    }
+$total_query = "SELECT COUNT(*) FROM credit c LEFT JOIN customer cu ON c.customer_id = cu.id $where";
+$total = $conn->query($total_query)->fetch_row()[0];
+$pages = ceil($total / $limit);
 
-    $stmt = $conn->prepare("SELECT amount_owed, amount_paid FROM credit WHERE id = ?");
-    $stmt->bind_param("i", $credit_id);
-    $stmt->execute();
-    $credit = $stmt->get_result()->fetch_assoc();
-
-    if (!$credit) {
-        header("Location: credits.php?error=Credit not found");
-        exit();
-    }
-
-    $remaining = $credit['amount_owed'] - $credit['amount_paid'];
-    if ($payment_amount > $remaining) {
-        header("Location: credits.php?error=Payment exceeds remaining balance");
-        exit();
-    }
-
-    $new_paid = $credit['amount_paid'] + $payment_amount;
-    $status = ($remaining - $payment_amount <= 0) ? 'paid' : ($new_paid > 0 ? 'partially_paid' : 'unpaid');
-
-    $stmt = $conn->prepare("UPDATE credit SET amount_paid = ?, status = ? WHERE id = ?");
-    $stmt->bind_param("dsi", $new_paid, $status, $credit_id);
-    $stmt->execute();
-
-    $stmt = $conn->prepare("INSERT INTO payment_history (credit_id, payment_amount) VALUES (?, ?)");
-    $stmt->bind_param("id", $credit_id, $payment_amount);
-    $stmt->execute();
-
-    header("Location: credits.php?success=Payment recorded successfully");
-    exit();
-}
-
-// Fetch total outstanding
-$total_outstanding_query = "SELECT SUM(amount_owed - amount_paid) AS total FROM credit WHERE status != 'paid'";
-$total_outstanding = $conn->query($total_outstanding_query)->fetch_assoc()['total'] ?? 0;
-
-// Fetch credits with filters and pagination
-$where = "WHERE cr.status != 'paid'";
-if ($customer_filter) $where .= " AND c.customer_name LIKE '%$customer_filter%'";
-if ($status_filter) $where .= " AND cr.status = '$status_filter'";
-$credits_query = "SELECT cr.id, c.customer_name, cr.amount_owed, cr.amount_paid, cr.status, cr.created_at 
-                  FROM credit cr JOIN customer c ON cr.customer_id = c.id 
-                  $where ORDER BY cr.created_at DESC LIMIT $limit OFFSET $offset";
+$credits_query = "SELECT c.id, cu.customer_name, c.amount_owed, c.amount_paid, c.status, c.created_at 
+                  FROM credit c LEFT JOIN customer cu ON c.customer_id = cu.id $where 
+                  ORDER BY c.created_at DESC LIMIT $limit OFFSET $offset";
 $credits_result = $conn->query($credits_query);
 
-// Total count for pagination
-$count_query = "SELECT COUNT(*) AS total FROM credit cr JOIN customer c ON cr.customer_id = c.id $where";
-$total_items = $conn->query($count_query)->fetch_assoc()['total'];
-$total_pages = ceil($total_items / $limit);
+// Unique statuses for filter (assuming statuses like 'pending', 'paid')
+$statuses_query = "SELECT DISTINCT c.status FROM credit c $where";
+$statuses_result = $conn->query($statuses_query);
+$all_statuses = [];
+while ($row = $statuses_result->fetch_assoc()) {
+    $all_statuses[] = $row['status'];
+}
 
 $conn->close();
 ?>
@@ -104,20 +67,18 @@ $conn->close();
                     <div class="alert-danger"><?php echo htmlspecialchars($_GET['error']); ?></div>
                 <?php endif; ?>
 
-                <h2>Outstanding Credits</h2>
-                <p>Total Outstanding: ₱<?php echo number_format($total_outstanding, 2); ?></p>
-
+                <h2>Credit List</h2>
                 <form method="GET">
-                    <input type="text" name="customer" placeholder="Filter by customer..." value="<?php echo htmlspecialchars($customer_filter); ?>">
-                    <select name="status">
-                        <option value="">All Statuses</option>
-                        <option value="unpaid" <?php if ($status_filter === 'unpaid') echo 'selected'; ?>>Unpaid</option>
-                        <option value="partially_paid" <?php if ($status_filter === 'partially_paid') echo 'selected'; ?>>Partially Paid</option>
+                    <input type="text" name="search" placeholder="Search by customer or status..." value="<?php echo htmlspecialchars($search); ?>">
+                    <select multiple name="statuses[]">
+                        <?php foreach ($all_statuses as $status): ?>
+                            <option value="<?php echo htmlspecialchars($status); ?>" <?php if (in_array($status, $statuses ?? [])) echo 'selected'; ?>><?php echo ucfirst($status); ?></option>
+                        <?php endforeach; ?>
                     </select>
                     <button type="submit" class="button">Filter</button>
                 </form>
 
-                <div class="table-container">
+                <div class="table-responsive">
                     <table class="table">
                         <thead>
                             <tr>
@@ -125,49 +86,23 @@ $conn->close();
                                 <th>Customer</th>
                                 <th>Amount Owed</th>
                                 <th>Amount Paid</th>
-                                <th>Remaining</th>
                                 <th>Status</th>
                                 <th>Date</th>
-                                <th>Record Payment</th>
-                                <th>Payment History</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php while ($credit = $credits_result->fetch_assoc()): ?>
                                 <tr>
                                     <td><?php echo $credit['id']; ?></td>
-                                    <td><?php echo htmlspecialchars($credit['customer_name']); ?></td>
+                                    <td><?php echo htmlspecialchars($credit['customer_name'] ?? 'Anonymous'); ?></td>
                                     <td>₱<?php echo number_format($credit['amount_owed'], 2); ?></td>
                                     <td>₱<?php echo number_format($credit['amount_paid'], 2); ?></td>
-                                    <td>₱<?php echo number_format($credit['amount_owed'] - $credit['amount_paid'], 2); ?></td>
                                     <td><?php echo ucfirst($credit['status']); ?></td>
                                     <td><?php echo $credit['created_at']; ?></td>
                                     <td>
-                                        <form method="POST">
-                                            <input type="hidden" name="credit_id" value="<?php echo $credit['id']; ?>">
-                                            <input type="number" name="payment_amount" step="0.01" min="0.01" placeholder="Payment Amount" required>
-                                            <button type="submit" name="record_payment" class="button small">Pay</button>
-                                        </form>
-                                    </td>
-                                    <td>
-                                        <button onclick="toggleHistory(<?php echo $credit['id']; ?>)">View History</button>
-                                        <div id="history-<?php echo $credit['id']; ?>" style="display:none;">
-                                            <?php
-                                            $conn = new mysqli('127.0.0.1:3307', 'root', '', 'cashier_db');
-                                            $history_query = "SELECT payment_amount, payment_date FROM payment_history WHERE credit_id = " . $credit['id'] . " ORDER BY payment_date DESC";
-                                            $history_result = $conn->query($history_query);
-                                            if ($history_result->num_rows > 0): ?>
-                                                <ul>
-                                                    <?php while ($hist = $history_result->fetch_assoc()): ?>
-                                                        <li>₱<?php echo number_format($hist['payment_amount'], 2); ?> on <?php echo $hist['payment_date']; ?></li>
-                                                    <?php endwhile; ?>
-                                                </ul>
-                                            <?php else: ?>
-                                                <p>No payments yet.</p>
-                                            <?php endif; 
-                                            $conn->close();
-                                            ?>
-                                        </div>
+                                        <a href="pages/edit_credit.php?id=<?php echo $credit['id']; ?>" class="button small">Edit</a>
+                                        <a href="pages/process_credit.php?action=delete&id=<?php echo $credit['id']; ?>" class="button small danger" onclick="return confirm('Are you sure?');">Delete</a>
                                     </td>
                                 </tr>
                             <?php endwhile; ?>
@@ -175,10 +110,9 @@ $conn->close();
                     </table>
                 </div>
 
-                <!-- Pagination links -->
                 <div class="pagination">
-                    <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-                        <a href="credits.php?page=<?php echo $i; ?>&customer=<?php echo urlencode($customer_filter); ?>&status=<?php echo urlencode($status_filter); ?>" <?php if ($i === $page) echo 'class="active"'; ?>><?php echo $i; ?></a>
+                    <?php for ($i = 1; $i <= $pages; $i++): ?>
+                        <a href="credits.php?page=<?php echo $i; ?>&search=<?php echo urlencode($search); ?>" <?php if ($i == $page) echo 'class="active"'; ?>><?php echo $i; ?></a>
                     <?php endfor; ?>
                 </div>
             </section>
@@ -188,12 +122,8 @@ $conn->close();
             </footer>
         </div>
     </div>
-
+    <script src="assets/js/scripts.js"></script>
     <script>
-        function toggleHistory(id) {
-            const historyDiv = document.getElementById(`history-${id}`);
-            historyDiv.style.display = historyDiv.style.display === 'none' ? 'block' : 'none';
-        }
         window.onload = function() {
             const container = document.querySelector('.container');
             if (container) {
@@ -201,6 +131,5 @@ $conn->close();
             }
         };
     </script>
-    <script src="assets/js/scripts.js"></script>
 </body>
 </html>

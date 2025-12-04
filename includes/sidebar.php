@@ -47,7 +47,7 @@ if (session_status() == PHP_SESSION_NONE) {
 
 <!-- AI Modal (Floating Window) -->
 <div id="ai-modal" class="modal" style="display: none;">
-    <div class="modal-content" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 600px; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); background-color: #1e1e1e;">  <!-- Added inline background-color for dark mode; change to #f8f9fa for light if needed -->
+    <div class="modal-content" style="position: absolute; top: 20%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 600px; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); background-color: #1e1e1e;">  <!-- Added inline background-color for dark mode; change to #f8f9fa for light if needed -->
         <span id="close-modal" class="close" style="cursor: pointer; float: right; font-size: 24px;">×</span>
         <h2>Ask AI</h2>
         <p>Choose a pre-defined question or type your own:</p>

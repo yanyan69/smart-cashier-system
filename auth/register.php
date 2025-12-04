@@ -15,7 +15,7 @@
                 <h1>Register</h1>
             </header>
             <section>
-                <form action="register_process.php" method="POST">
+                <form action="auth/register_process.php" method="POST">
                     <div class="form-group">
                         <label for="username">Username:</label>
                         <input type="text" id="username" name="username" required>
@@ -31,7 +31,7 @@
                     <div class="form-group">
                         <button type="submit" class="button">Register</button>
                     </div>
-                    <p><a href="../index.php">Already have an account? Login here.</a></p>
+                    <p><a href="/smart-cashier-system/index.php">Already have an account? Login here.</a></p>
                     <?php
                         if (isset($_GET['error'])) {
                             echo '<div class="alert-danger">' . htmlspecialchars($_GET['error']) . '</div>';
