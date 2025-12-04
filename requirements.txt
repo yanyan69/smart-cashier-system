@@ -1,0 +1,22 @@
+# Software Requirements for Smart Business Cashier and Inventory Management System
+
+# Web Server Stack:
+- XAMPP (or WAMP/LAMP/MAMP): Version 8.0+ (includes Apache, PHP, MySQL)
+  - Download: https://www.apachefriends.org/index.html
+
+# PHP:
+- PHP 8.0+ (included in XAMPP)
+- Required Extensions (enabled by default in XAMPP):
+  - mysqli
+  - session
+  - json
+
+# Database:
+- MySQL 8.0+ (included in XAMPP)
+- phpMyAdmin for management (included in XAMPP)
+
+# Browser:
+- Modern browser (Chrome, Firefox, Edge) for testing
+
+# No additional PHP packages needed (uses built-in functions).
+# For development: Git for cloning the repo.

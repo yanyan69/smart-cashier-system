@@ -2,50 +2,99 @@
 
 ## Overview
 
-This is a web-based system designed to help small businesses manage their sales, inventory, and customer credits ("utang"). It aims to replace manual tracking methods, reduce errors, and streamline operations for businesses like hardware stores and sari-sari stores.
+This is a web-based system designed to help small businesses (e.g., hardware stores, sari-sari stores) manage sales, inventory, customer credits ("utang"), and more. It replaces manual tracking to reduce errors and streamline operations. The system supports multi-user roles (admin and store owners), with features for product management, sales recording, credit tracking, and reporting.
+
+The project includes a responsive UI, PHP backend, MySQL database, and JavaScript for interactivity. It uses XAMPP (or similar) for local development.
 
 ## Features
 
-* **Product Management:** Create, edit, delete products with details like name, description, category, price, and stock. Search and sort products.
-* **Sales and Transaction Management:** Record sales, specify quantities, automatically calculate totals, and generate itemized receipts. Supports cash and credit sales.
-* **Credit Management ("Utang"):** Assign sales to customers as credit, record amounts owed, track payments, and monitor credit statuses.
-* **Customer Management:** Create and update customer profiles with contact information and view their credit history and total purchases.
-* **Order History and Reporting:** Record all transactions, allow searching and filtering, and generate summarized reports for various periods.
-* **Administrative Maintenance:** Manage store owner accounts, perform database backups, and view system logs (Admin access only).
-* **System Notifications:** Automatic low stock alerts. Confirmation of database backups.
-* **User-Friendly Interface:** Simple and intuitive design for users with minimal technical background.
-* **Multi-Device Access:** Accessible on Windows PCs and Android devices via web browsers.
+- **User Authentication**: Login, registration, password reset, and role-based access (admin for system maintenance, owners for store operations).
+- **Product Management**: Add, edit, delete products with details (name, description, category, price, stock, unit). Includes stock monitoring and low-stock alerts.
+- **Sales Management**: Record cash/credit sales, calculate totals, generate receipts, and update stock automatically.
+- **Credit Management ("Utang")**: Track customer debts, payments, and statuses (unpaid, partially paid, paid).
+- **Customer Management**: Add/edit customers, view purchase history and credits.
+- **Reporting**: View order history, filter/search transactions, generate reports (daily, weekly, etc.).
+- **Admin Tools**: Manage users, database backups, system logs.
+- **AI Assistant**: Floating "Ask AI" button for tutorials and queries (with modals for predefined questions and custom input).
+- **Settings**: Theme toggle (light/dark mode), user preferences.
+- **Notifications**: Low stock alerts, backup confirmations.
+- **Multi-Device Support**: Accessible on PCs and mobile via web browsers.
+- **Logging**: System events logged for auditing.
+- **Theming**: Dark/light mode with local storage persistence.
 
 ## Technologies Used
 
-* HTML
-* CSS
-* JavaScript
-* PHP
-* MySQL
+- **Frontend**: HTML, CSS (with light/dark themes), JavaScript (for modals, forms, calculations).
+- **Backend**: PHP (for API endpoints, database interactions).
+- **Database**: MySQL (schema in `database/database.sql`).
+- **Server**: Apache (via XAMPP or similar).
+- **Other**: Session management for authentication, `.htaccess` for URL rewriting and error handling.
+
+## Project Structure
+
+- **assets/**: CSS, JS, HTML templates, images, fonts.
+- **api/**: PHP API endpoints (e.g., auth/login.php).
+- **auth/**: Authentication scripts (login, register, logout, password reset).
+- **config/**: Database connection and functions (db.php, functions.php).
+- **database/**: SQL schema (database.sql) and connection (db_connection.php).
+- **includes/**: Shared components (header.php, footer.php, sidebar.php, session.php, functions.php, db_connect.php).
+- **pages/**: Main pages (dashboard.php, admin_panel.php, products.php, sales.php, etc.).
+- **root files**: index.php (login), .htaccess, README.md, test_db.php.
 
 ## Installation
 
-1.  **Prerequisites:** Ensure you have a web server environment with PHP and MySQL installed (e.g., XAMPP, WAMP).
-2.  **Database Setup:**
-    * Start Apache and MySQL servers.
-    * Access phpMyAdmin (usually at `http://localhost/phpmyadmin`).
-    * Create a new database named `cashier_db` (or your preferred name).
-    * Import the `database/database.sql` file (if you have created one with your table structure) or manually create the tables as defined in your database design.
-    * Update the database connection details in `config/db.php` with your MySQL username, password, and database name.
-3.  **File Placement:** Place all the project files within the web server's document root (e.g., `htdocs` in XAMPP). If the project is in a subfolder (like `smart-cashier-system`), access it via `http://localhost/smart-cashier-system/`.
-4.  **`.htaccess` (Optional):** Ensure that `.htaccess` is enabled on your Apache server if you intend to use the URL rewriting rules.
+### Prerequisites
+See `requirements.txt` for a list of required software.
 
-## Getting Started
+### Steps
+1. **Clone the Repository**:
+git clone https://github.com/your-username/smart-cashier-system.git
+cd smart-cashier-system
+text2. **Set Up Local Server**:
+- Install XAMPP (or similar LAMP/WAMP stack).
+- Start Apache and MySQL via XAMPP Control Panel.
 
-1.  Open your web browser and navigate to the project's URL (e.g., `http://localhost/smart-cashier-system/`).
-2.  You should see the login page (`index.php` or `index.html`).
-3.  You might need to register an initial admin user through the registration page (`auth/register.php`).
+3. **Database Setup**:
+- Open phpMyAdmin[](http://localhost/phpmyadmin).
+- Create a database named `cashier_db`.
+- Import `database/database.sql` to set up tables.
 
-## Further Development
+4. **Configure Database Connection**:
+- Edit `includes/db_connect.php` and `config/db.php` with your MySQL details (host: `127.0.0.1:3307`, user: `root`, password: empty or `admin`, db: `cashier_db`).
 
-[This section can include notes on future features, areas for improvement, or how to contribute.]
+5. **Place Files**:
+- Copy the project folder to XAMPP's `htdocs` directory (e.g., `C:\xampp\htdocs\smart-cashier-system`).
+
+6. **Run the App**:
+- Access via browser: http://localhost/smart-cashier-system/.
+- Register a user or login (default admin credentials if seeded).
+
+7. **Automated Setup (Windows)**:
+- Run `setup.bat` (double-click). This assumes XAMPP is at `C:\xampp`—edit if different. It copies files, starts services, and imports DB.
+
+## Usage
+
+- **Login**: Go to http://localhost/smart-cashier-system/. Use registered credentials.
+- **Admin Panel**: For admins, manage users/logs/backups.
+- **Dashboard**: For owners, manage products/sales/credits.
+- **AI Help**: Click "Ask AI" for tutorials/queries.
+- **Theme**: Toggle light/dark in settings.
+
+For detailed user interactions, see the User Manual (separate document with screenshots).
+
+## Testing
+
+- Test DB connection: http://localhost/smart-cashier-system/test_db.php.
+- Error logs: Check `logs/app.log` or PHP error logs.
+
+## Contributing
+
+Fork the repo, make changes, and submit a pull request.
 
 ## License
 
-[You can include license information here if applicable.]
+[Add your license, e.g., MIT License]
+
+## Acknowledgments
+
+Developed by Techlaro Company team: Christian L. Narvaez, John Paul F. Armenta, Jerald James D. Preclaro, Marielle B. Maming.
