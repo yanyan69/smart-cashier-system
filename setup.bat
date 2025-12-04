@@ -67,7 +67,7 @@ ping 127.0.0.1 -n 8 >nul
 :: Step 4: Create and import database
 echo.
 echo [4/6] Creating database: %DB_NAME%
-"%XAMPP_PATH%\mysql\bin\mysql.exe" -u %DB_USER% %PASS_OPT% -e "DROP DATABASE IF EXISTS %DB_NAME%; CREATE DATABASE %DB_NAME%;"
+"%XAMPP_PATH%\mysql\bin\mysql.exe" -u %DB_USER% %PASS_OPT% -e "CREATE DATABASE IF NOT EXISTS %DB_NAME%;; CREATE DATABASE %DB_NAME%;"
 if errorlevel 1 (
     echo ERROR: Could not create database. Is MySQL running? Password correct?
     pause

@@ -1,114 +1,105 @@
-==================================================================
-SMART BUSINESS CASHIER & INVENTORY MANAGEMENT SYSTEM
-EASY SETUP GUIDE (Windows + XAMPP)
-==================================================================
+SMART BUSINESS CASHIER AND INVENTORY MANAGEMENT SYSTEM
+Installation and Setup Guide
+(Windows Operating System with XAMPP)
 
-This guide will get the system running in less than 10 minutes even if you are a complete beginner.
+This document provides a complete step-by-step procedure for installing and configuring the system on a local Windows environment using XAMPP. The process is designed for users with minimal technical experience.
 
-REQUIREMENTS
---------------------------------------------------------------------
-1. Windows 10/11 (64-bit recommended)
-2. XAMPP (latest version) → Download: https://www.apachefriends.org/download.html
-   Choose "XAMPP for Windows" (PHP 8.2 or 8.3 is fine)
-3. Git (optional but recommended) → https://git-scm.com/downloads
-   (During installation, choose "Add Git to PATH")
+Prerequisites
 
-QUICK SETUP STEPS
---------------------------------------------------------------------
-STEP 1: Install XAMPP
-   • Run the XAMPP installer (double-click the .exe)
-   • Install to the default location: C:\xampp
-   • When asked, allow Apache and MySQL to be installed
+Microsoft Windows 10 or Windows 11 (64-bit recommended)
 
-STEP 2: Get the project files
-   Two ways (choose one):
+XAMPP (Apache + MySQL + PHP) – latest version
+Download: https://www.apachefriends.org/download.html
 
-   OPTION A – Clone with Git (recommended)
-      • Open Command Prompt or Windows Terminal
-      • Run these commands:
-          cd C:\xampp\htdocs
-          git clone https://github.com/yanyan69/smart-cashier-system.git
-         
-   OPTION B – Manual download
-      • Download the ZIP from GitHub
-      • Extract everything into: C:\xampp\htdocs\smart-cashier-system
+Select the installer for PHP 8.2 or 8.3
 
-   Final folder path must be: C:\xampp\htdocs\smart-cashier-system
+Step 1: Install XAMPP
 
-STEP 3: Start Apache & MySQL
-   • Open "XAMPP Control Panel" (search in Start menu)
-   • Click "Start" next to Apache
-   • Click "Start" next to MySQL
-   • Both should turn GREEN
+Run the downloaded XAMPP installer.
 
-STEP 4: Create the database (one-click method)
-   • Open your browser → go to: http://localhost/phpmyadmin
-   • Click "Databases" tab
-   • Type database name: cashier_db
-   • Click "Create"
-   • Now click on the new database "cashier_db" on the left
-   • Click "Import" tab
-   • Click "Choose File" → browse to your project folder →
-     select: database\database.sql
-   • Scroll down and click "Import" (or "Go")
+Install to the default location: C:\xampp
 
-   → You should see "Import has been successfully finished"
+Make sure Apache and MySQL are selected.
 
-STEP  5: Test the system
-   • Open browser → go to:
-     http://localhost/smart-cashier-system/
-   • You will see the login page
+Finish the installation.
 
-FIRST-TIME LOGIN (Important!)
---------------------------------------------------------------------
-The system comes with no default user. You must register the first account:
+Step 2: Obtain the Project Source Code
 
-1. On the login page, click "Register here."
-2. Fill the form:
-   • Username: admin (or anything you want)
-   • Password: anything strong
-   • Role: choose "admin" (very important for full access)
-3. Click Register
-4. Now go back and login with the account you just created
+Recommended Method (Git Clone):
 
-You now have full admin access!
+Open Command Prompt or Windows Terminal.
 
-COMMON ISSUES & FIXES
---------------------------------------------------------------------
-• Port conflict (Apache/MySQL won't start)?
-   → Skype, VMware, or another program is using port 80 or 3306
-   → Solution: Close Skype or change XAMPP ports (Config → Service and Port Settings)
+Run the following commands:
 
-• "Access denied" or database error?
-   → Make sure database name is exactly: cashier_db
-   → Make sure you imported database.sql correctly
+cd C:\xampp\htdocs
+git clone https://github.com/yanyan69/smart-cashier-system.git
 
-• Blank page or errors?
-   → Check XAMPP Control Panel → Apache → Logs → error.log
-   → Or enable error display temporarily:
-     Open C:\xampp\htdocs\smart-cashier-system\includes\db_connect.php
-     Add this line at the top (after <?php):
-     ini_set('display_errors', 1); error_reporting(E_ALL);
+Alternative Method (Manual Download):
 
-• Want to use on phone/tablet in the same Wi-Fi?
-   → Find your PC's IP (open cmd → type ipconfig → look for IPv4)
-   → On phone browser: http://192.168.x.x/smart-cashier-system/
-     (replace with your PC IP)
+Go to https://github.com/yanyan69/smart-cashier-system
 
-UPDATING THE SYSTEM LATER
---------------------------------------------------------------------
-If we push updates on GitHub:
-   • Open cmd in project folder:
-     cd C:\xampp\htdocs\smart-cashier-system
-     git pull
-   • Done! All new files are updated automatically.
+Click "Code" then "Download ZIP"
 
-That's it! Your cashier system is now 100% ready.
+Extract all files into C:\xampp\htdocs\smart-cashier-system
 
-Any problem? Message Christian Narvaez on Facebook or WhatsApp.
-We can TeamViewer and fix it in 2 minutes.
+Step 3: Run the Automated Setup (Highly Recommended)
 
-==================================================================
-Techlaro Company © 2025
-Christian L. Narvaez | John Paul F. Armenta | Jerald James D. Preclaro | Marielle B. Maming
-==================================================================
+Open the folder: C:\xampp\htdocs\smart-cashier-system
+
+Double-click the file named setup.bat
+
+Wait 10–30 seconds for the process to complete.
+
+The setup.bat script will automatically:
+
+Pull the latest code from GitHub (if Git is installed)
+
+Copy all files to the correct location
+
+Start Apache and MySQL services
+
+Create the database named cashier_db
+
+Import the database schema from database.sql
+
+Open the system in your default web browser
+
+Step 4: Initial System Access (After setup.bat finishes)
+
+The browser will open: http://localhost/smart-cashier-system/
+
+On the login page, click "Register here."
+
+Fill in the registration form:
+Username: admin (or any preferred name)
+Password: choose a strong password
+Role: admin (required for full access)
+
+Click Register
+
+Log in using your new credentials.
+
+You now have full administrative access to the system.
+
+Updating the System in the Future
+
+To update the system safely without losing data, run setup.bat again.
+
+Access from Mobile Devices (Same Wi-Fi Network)
+
+On the Windows PC, open Command Prompt and type: ipconfig
+
+Find the "IPv4 Address" (example: 192.168.1.100)
+
+On any device connected to the same Wi-Fi, open a browser and visit:
+http://192.168.1.100/smart-cashier-system/
+
+The system is now fully installed, configured, and ready for daily use.
+
+Techlaro Company
+December 2025
+Project Members: 
+Christian L. Narvaez, 
+John Paul F. Armenta, 
+Jerald James D. Preclaro, 
+Marielle B. Maming
